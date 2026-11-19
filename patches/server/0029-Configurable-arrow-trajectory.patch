@@ -9,11 +9,11 @@ We then check inside shoot() if "f1" is zero, and if so, don't apply
 the randomness. This is mostly an optimization, as it would be
 multiplied by zero anyways, causing the same effect.
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
 index ae63f6948dc9b7058389ab26c0f43302c5d4fc81..552ee2cc025bcee5e1c394e6b8be455dc3335fda 100644
---- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-@@ -39,4 +39,8 @@ public class PandaSpigotWorldConfig {
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
+@@ -39,4 +39,8 @@ public class OmegaSpigotWorldConfig {
      @Comment("When enabled, entity AI will be disabled.\n" +
              "This has the same effect as Spigot's \"nerf-spawner-mobs\" option, but applies to all entities.")
      public boolean disableEntityAi = false;
@@ -31,7 +31,7 @@ index eac0363c2e8c2a75481000077725f09f2c492e3e..8c9b5c034d32349317bbeb8807f7e4a4
          this.motZ = (double) (MathHelper.cos(this.yaw / 180.0F * 3.1415927F) * MathHelper.cos(this.pitch / 180.0F * 3.1415927F));
          this.motY = (double) (-MathHelper.sin(this.pitch / 180.0F * 3.1415927F));
 -        this.shoot(this.motX, this.motY, this.motZ, f * 1.5F, 1.0F);
-+        this.shoot(this.motX, this.motY, this.motZ, f * 1.5F, this.world.pandaSpigotConfig.randomArrowTrajectory ? 1.0F : 0); // PandaSpigot
++        this.shoot(this.motX, this.motY, this.motZ, f * 1.5F, this.world.omegaSpigotConfig.randomArrowTrajectory ? 1.0F : 0); // PandaSpigot
      }
  
      protected void h() {

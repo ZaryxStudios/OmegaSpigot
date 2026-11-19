@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: hpfxd <me@hpfxd.com>
 Date: Sat, 30 Oct 2021 03:44:48 -0400
-Subject: [PATCH] PandaSpigot Configuration
+Subject: [PATCH] OmegaSpigot Configuration
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
@@ -10,7 +10,7 @@ index 9c0fdf00d36a48f4f905db9bd760db898fac7f3f..ff5f1a64d56874e7edeaf2de63e09845
 +++ b/build.gradle.kts
 @@ -12,6 +12,12 @@ repositories {
  dependencies {
-     implementation(project(":pandaspigot-api"))
+     implementation(project(":omegaspigot-api"))
  
 +    // PandaSpigot start - Configuration
 +    implementation("com.hpfxd.configurate:configurate-eo-yaml:1.0.0") {
@@ -30,19 +30,19 @@ index 9c0fdf00d36a48f4f905db9bd760db898fac7f3f..ff5f1a64d56874e7edeaf2de63e09845
 +            "com.amihaiemil.eoyaml",
 +            "org.spongepowered.configurate",
 +            "io.leangen.geantyref",
-+        ).forEach { relocate(it, "com.hpfxd.pandaspigot.libs.$it") }
++        ).forEach { relocate(it, "dev.zaryxstudios.escanergang.omegaspigot.libs.$it") }
 +        // PandaSpigot end
 +
          relocate("org.bukkit.craftbukkit", "org.bukkit.craftbukkit.v${minecraftVersion}") {
              exclude("org.bukkit.craftbukkit.Main*") // don't relocate main class
          }
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..f021fd0c7622a788b809ecbf896162912ab4b0d0
 --- /dev/null
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
 @@ -0,0 +1,96 @@
-+package com.hpfxd.pandaspigot.config;
++package dev.zaryxstudios.escanergang.omegaspigot.config;
 +
 +import com.google.common.base.Throwables;
 +import com.hpfxd.configurate.eoyaml.EOYamlConfigurationLoader;
@@ -61,10 +61,10 @@ index 0000000000000000000000000000000000000000..f021fd0c7622a788b809ecbf89616291
 +
 +@ConfigSerializable
 +@SuppressWarnings({"FieldCanBeLocal", "FieldMayBeFinal"})
-+public class PandaSpigotConfig {
-+    private static PandaSpigotConfig config;
-+    private static PandaSpigotWorldConfig defaultWorldConfig;
-+    private static final Map<String, PandaSpigotWorldConfig> worldConfigs = new HashMap<>();
++public class OmegaSpigotConfig {
++    private static OmegaSpigotConfig config;
++    private static OmegaSpigotWorldConfig defaultWorldConfig;
++    private static final Map<String, OmegaSpigotWorldConfig> worldConfigs = new HashMap<>();
 +    
 +    /**
 +     * Initialize the configuration, and load it from a file.
@@ -77,7 +77,7 @@ index 0000000000000000000000000000000000000000..f021fd0c7622a788b809ecbf89616291
 +        EOYamlConfigurationLoader loader = EOYamlConfigurationLoader.builder()
 +                .file(file)
 +                .defaultOptions(o -> o
-+                        .header("This is the configuration file for PandaSpigot.\n" +
++                        .header("This is the configuration file for OmegaSpigot.\n" +
 +                                "Use caution when modifying settings, as some may impact gameplay in non-obvious ways.")
 +                        .mapFactory(MapFactories.insertionOrdered())
 +                        .serializers(build -> build.registerAnnotatedObjects(ObjectMapper.factoryBuilder()
@@ -87,7 +87,7 @@ index 0000000000000000000000000000000000000000..f021fd0c7622a788b809ecbf89616291
 +        
 +        try {
 +            CommentedConfigurationNode root = loader.load();
-+            config = root.get(PandaSpigotConfig.class);
++            config = root.get(OmegaSpigotConfig.class);
 +            
 +            // worlds
 +            CommentedConfigurationNode worldsNode = root.node("worlds")
@@ -98,7 +98,7 @@ index 0000000000000000000000000000000000000000..f021fd0c7622a788b809ecbf89616291
 +                            "\n" +
 +                            "To specify settings for a specific world, just add a new section with the world's name.");
 +            ConfigurationNode defaultWorldNode = worldsNode.node("default");
-+            defaultWorldConfig = defaultWorldNode.get(PandaSpigotWorldConfig.class);
++            defaultWorldConfig = defaultWorldNode.get(OmegaSpigotWorldConfig.class);
 +            defaultWorldNode.set(defaultWorldConfig); // populate default in config
 +            
 +            root.set(config); // update backing node
@@ -118,40 +118,40 @@ index 0000000000000000000000000000000000000000..f021fd0c7622a788b809ecbf89616291
 +            if (worldName.equals("default")) continue; // skip "default"
 +            ConfigurationNode worldNode = entry.getValue();
 +            
-+            PandaSpigotWorldConfig worldConfig = worldNode.get(PandaSpigotWorldConfig.class);
++            OmegaSpigotWorldConfig worldConfig = worldNode.get(OmegaSpigotWorldConfig.class);
 +            
 +            worldConfigs.put(worldName.toString(), worldConfig);
 +        }
 +    }
 +    
-+    public static PandaSpigotWorldConfig getWorldConfig(String worldName) {
++    public static OmegaSpigotWorldConfig getWorldConfig(String worldName) {
 +        return worldConfigs.getOrDefault(worldName, defaultWorldConfig);
 +    }
 +    
-+    public static PandaSpigotWorldConfig getWorldConfig(World world) {
++    public static OmegaSpigotWorldConfig getWorldConfig(World world) {
 +        return getWorldConfig(world.worldData.getName());
 +    }
 +    
-+    public static PandaSpigotConfig get() {
++    public static OmegaSpigotConfig get() {
 +        return config;
 +    }
 +    
 +    //------------------------------------------------------------------------
 +}
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..9afaf630481a9533fb014f306d4d90b8de80a129
 --- /dev/null
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
 @@ -0,0 +1,9 @@
-+package com.hpfxd.pandaspigot.config;
++package dev.zaryxstudios.escanergang.omegaspigot.config;
 +
 +import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 +import org.spongepowered.configurate.objectmapping.meta.Comment;
 +
 +@ConfigSerializable
 +@SuppressWarnings({"FieldCanBeLocal", "FieldMayBeFinal"})
-+public class PandaSpigotWorldConfig {
++public class OmegaSpigotWorldConfig {
 +}
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
 index 8e57df176bcb04b7309a476a5472a41e5e46f8ae..97699e7f86cef3ab8c4560066f0ef93c18a8f5ad 100644
@@ -161,7 +161,7 @@ index 8e57df176bcb04b7309a476a5472a41e5e46f8ae..97699e7f86cef3ab8c4560066f0ef93c
              }
              bindAddress = new java.net.InetSocketAddress(inetaddress, this.R());
              }
-+            com.hpfxd.pandaspigot.config.PandaSpigotConfig.init((File) options.valueOf("pandaspigot-settings"));
++            dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.init((File) options.valueOf("omegaspigot-settings"));
              // PandaSpigot end
              // PaperSpigot start
              org.github.paperspigot.PaperSpigotConfig.init((File) options.valueOf("paper-settings"));
@@ -173,7 +173,7 @@ index 8f3511f800818c36b9387b92376e0b9785ec52b5..375d991f1ede3b352027192f5eccd8a8
  
      public final org.github.paperspigot.PaperSpigotWorldConfig paperSpigotConfig; // PaperSpigot
  
-+    public com.hpfxd.pandaspigot.config.PandaSpigotWorldConfig pandaSpigotConfig; // PandaSpigot
++    public dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotWorldConfig omegaSpigotConfig; // PandaSpigot
 +
      public final co.aikar.timings.WorldTimingsHandler timings; // Spigot
  
@@ -182,7 +182,7 @@ index 8f3511f800818c36b9387b92376e0b9785ec52b5..375d991f1ede3b352027192f5eccd8a8
      protected World(IDataManager idatamanager, WorldData worlddata, WorldProvider worldprovider, MethodProfiler methodprofiler, boolean flag, ChunkGenerator gen, org.bukkit.World.Environment env) {
          this.spigotConfig = new org.spigotmc.SpigotWorldConfig( worlddata.getName() ); // Spigot
          this.paperSpigotConfig = new org.github.paperspigot.PaperSpigotWorldConfig( worlddata.getName() ); // PaperSpigot
-+        this.pandaSpigotConfig = com.hpfxd.pandaspigot.config.PandaSpigotConfig.getWorldConfig(worlddata.getName()); // PandaSpigot
++        this.omegaSpigotConfig = dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.getWorldConfig(worlddata.getName()); // PandaSpigot
          this.generator = gen;
          this.world = new CraftWorld((WorldServer) this, gen, env);
          this.ticksPerAnimalSpawns = this.getServer().getTicksPerAnimalSpawns(); // CraftBukkit
@@ -194,7 +194,7 @@ index ad8c5da90fc64825185aedcfdf89a6ff013a7a81..1caffab6e75abf6010e8f1f2d2a29a2a
  
          org.spigotmc.SpigotConfig.init((File) console.options.valueOf("spigot-settings")); // Spigot
          org.github.paperspigot.PaperSpigotConfig.init((File) console.options.valueOf("paper-settings")); // PaperSpigot
-+        com.hpfxd.pandaspigot.config.PandaSpigotConfig.init((File) console.options.valueOf("pandaspigot-settings")); // PandaSpigot
++        dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.init((File) console.options.valueOf("omegaspigot-settings")); // PandaSpigot
          for (WorldServer world : console.worlds) {
              world.worldData.setDifficulty(difficulty);
              world.setSpawnFlags(monsters, animals);
@@ -202,7 +202,7 @@ index ad8c5da90fc64825185aedcfdf89a6ff013a7a81..1caffab6e75abf6010e8f1f2d2a29a2a
              }
              world.spigotConfig.init(); // Spigot
              world.paperSpigotConfig.init(); // PaperSpigot
-+            world.pandaSpigotConfig = com.hpfxd.pandaspigot.config.PandaSpigotConfig.getWorldConfig(world); // PandaSpigot
++            world.omegaSpigotConfig = dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.getWorldConfig(world); // PandaSpigot
          }
  
          pluginManager.clearPlugins();
@@ -216,10 +216,10 @@ index 3add8302c4817ed2612c55f2213db67d139e2a46..d8bb9c3e95b14e91075f8a36053e4409
                  // PaperSpigot End
 +
 +                // PandaSpigot start
-+                acceptsAll(asList("pandaspigot-settings"), "File for PandaSpigot settings")
++                acceptsAll(asList("omegaspigot-settings"), "File for OmegaSpigot settings")
 +                        .withRequiredArg()
 +                        .ofType(File.class)
-+                        .defaultsTo(new File("pandaspigot.yml"))
++                        .defaultsTo(new File("omegaspigot.yml"))
 +                        .describedAs("Yml file");
 +                // PandaSpigot end
              }

@@ -70,7 +70,7 @@ index c5a51d00b6d690213716b9bab71b4cfa8bf8af09..21c48d2b072ab4440d20a65d32945536
 +        }
 +        return "This server is running " + getName() + " version " + getVersion() + " (Implementing API version " + getBukkitVersion() + ") (Git: " + gitCommit + branchMsg + ")";
 +    }
-+    // PandaSpgiot end
++    // OmegaSpgiot end
  
      /**
       * Gets the name of this server implementation.

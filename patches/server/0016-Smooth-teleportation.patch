@@ -7,11 +7,11 @@ When teleporting, if the player's yaw & pitch are the same, the server
 will send a relative teleport packet indicating that the player's
 rotation should stay the same as it currently is on the client.
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
 index 40d31728068cc3b1e1d87c3ceb9f00cfdc719d94..224dfa106c15a0eb6db3f3f9208267ec83b425c0 100644
---- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-@@ -18,4 +18,12 @@ public class PandaSpigotWorldConfig {
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
+@@ -18,4 +18,12 @@ public class OmegaSpigotWorldConfig {
          public double extraHorizontal = 0.5;
          public double extraVertical = 0.1;
      }
@@ -47,7 +47,7 @@ index 4391ad7e7cf547b5e179c06e64b3a6e02cbe7a41..5842cedc81b90b4f3565d71ba5dfa8c0
                          // If the event is cancelled we move the player back to their old location.
                          if (event.isCancelled()) {
 +                            // PandaSpigot start - Smooth teleportation
-+                            if (this.player.world.pandaSpigotConfig.smoothTeleportation) {
++                            if (this.player.world.omegaSpigotConfig.smoothTeleportation) {
 +                                this.player.playerConnection.sendPacket(new PacketPlayOutPosition(from.getX(), from.getY(), from.getZ(), 0, 0, TELEPORT_NO_ROT));
 +                            } else {
 +                            // PandaSpigot end
@@ -61,7 +61,7 @@ index 4391ad7e7cf547b5e179c06e64b3a6e02cbe7a41..5842cedc81b90b4f3565d71ba5dfa8c0
  
      private void internalTeleport(double d0, double d1, double d2, float f, float f1, Set set) {
 +        // PandaSpigot start - Smooth teleportation
-+        if (this.player.world.pandaSpigotConfig.smoothTeleportation && set.isEmpty()) {
++        if (this.player.world.omegaSpigotConfig.smoothTeleportation && set.isEmpty()) {
 +            // if yaw & pitch are same, send a relative teleport
 +            if (this.player.yaw == f && this.player.pitch == f1) {
 +                set = TELEPORT_NO_ROT; // provided set is probably immutable

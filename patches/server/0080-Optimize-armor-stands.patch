@@ -8,11 +8,11 @@ This patch adds an option to prevent armor stands from moving.
 This patch also avoids armor stands looking up entities, which provides
 most of the benefits of avoiding move() while keeping gravity.
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
 index 544419b96d52319efa2a1373f33f62ca28ec9438..e12684808ab045a7fece1a885734721857147e35 100644
---- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-@@ -47,4 +47,6 @@ public class PandaSpigotWorldConfig {
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
+@@ -47,4 +47,6 @@ public class OmegaSpigotWorldConfig {
      public boolean optimizeTntMovement = false; // May not fully emulate vanilla behavior
  
      public boolean optimizeLiquidExplosions = true; // This seems like a pretty sane default
@@ -31,7 +31,7 @@ index 2ea4a5fd32629a7931189786f86dce99d1db6d63..f8415dd404e14d85290724e66abc8a1a
 +    // PandaSpigot start - add an option to make armor stands not move
 +    @Override
 +    public void move(double motX, double motY, double motZ) {
-+        if (getWorld().pandaSpigotConfig.optimizeArmorStandMovement) return;
++        if (getWorld().omegaSpigotConfig.optimizeArmorStandMovement) return;
 +        super.move(motX, motY, motZ);
 +    }
 +    // PandaSpigot end

@@ -9,7 +9,7 @@ source "$basedir/scripts/functions.sh"
 gitcmd="git -c commit.gpgsign=false"
 
 workdir="$basedir/base"
-decompiledir="$workdir/mc-dev/panda"
+decompiledir="$workdir/mc-dev/omega"
 
 find "$decompiledir/$nms" -type f -name "*.java" | while read file; do
     filename="$(basename "$file")"

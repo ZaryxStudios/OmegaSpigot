@@ -9,11 +9,11 @@ This also creates a problem where tab completion and chat share the same trackin
 
 Splitting this field and making the limits configurable would allow server owners to manage this behavior themselves, without relying on plugins that perform unsafe workarounds.
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
 index 1d8e4d1050ebafef8784920481621965fd5c212f..f1769ecc8fe0725171b638b7d8b7bbbc9e5250d1 100644
---- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
-@@ -123,4 +123,8 @@ public class PandaSpigotConfig {
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
+@@ -123,4 +123,8 @@ public class OmegaSpigotConfig {
      @Comment("Whether player IP addresses should be logged by the server. This does not impact\n" +
          "the ability of plugins to log the IP addresses of players.")
      public boolean logPlayerIpAddresses = true;
@@ -47,7 +47,7 @@ index 3df6d5bd628ddf45958677ff1f065addbdc4190c..a4c9ee61ca31700b35250cb014f31ffc
          // PandaSpigot start - Async Tab Completion
          // CraftBukkit start
 -        if (chatSpamField.addAndGet(this, 10) > 500 && !this.minecraftServer.getPlayerList().isOp(this.player.getProfile())) {
-+        if (tabSpamLimiter.addAndGet(com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().tabSpamIncrement) > com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().tabSpamLimit && !this.minecraftServer.getPlayerList().isOp(this.player.getProfile())) { // PandaSpigot - Split and make configurable
++        if (tabSpamLimiter.addAndGet(dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().tabSpamIncrement) > dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().tabSpamLimit && !this.minecraftServer.getPlayerList().isOp(this.player.getProfile())) { // PandaSpigot - Split and make configurable
              minecraftServer.postToMainThread(() -> this.disconnect("disconnect.spam"));
              return;
          }

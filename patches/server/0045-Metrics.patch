@@ -4,13 +4,13 @@ Date: Mon, 9 May 2022 07:05:24 -0400
 Subject: [PATCH] Metrics
 
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/Metrics.java b/src/main/java/com/hpfxd/pandaspigot/Metrics.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/Metrics.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/Metrics.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..9134394542f49f7c400a4a07b649048899694448
 --- /dev/null
-+++ b/src/main/java/com/hpfxd/pandaspigot/Metrics.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/Metrics.java
 @@ -0,0 +1,844 @@
-+package com.hpfxd.pandaspigot;
++package dev.zaryxstudios.escanergang.omegaspigot;
 +
 +import java.io.BufferedReader;
 +import java.io.ByteArrayOutputStream;
@@ -862,7 +862,7 @@ index 9bcfa3d9f26f88e704903d90695ab88b6532f5cc..6ca2e2b5ac993f42f99712237df2f06e
              this.a((PlayerList) (new DedicatedPlayerList(this)));
              org.spigotmc.SpigotConfig.init((File) options.valueOf("spigot-settings"));
              org.spigotmc.SpigotConfig.registerCommands();
-+            new com.hpfxd.pandaspigot.Metrics(); // PandaSpigot
++            new dev.zaryxstudios.escanergang.omegaspigot.Metrics(); // PandaSpigot
              // Spigot end
              java.net.SocketAddress bindAddress;
              if (this.getServerIp().startsWith("unix:")) {

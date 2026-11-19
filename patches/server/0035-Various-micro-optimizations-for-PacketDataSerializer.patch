@@ -26,7 +26,7 @@ index b48eeb63ad61b18a630f2feb4fd6203e5e3e6c80..6c46349fb24856bb2b0f94d84536f64d
 -        } while ((b0 & 128) == 128);
 -
 -        return i;
-+        return com.hpfxd.pandaspigot.network.VarIntUtil.readVarInt(this.a); // PandaSpigot - Optimize VarInt reading
++        return dev.zaryxstudios.escanergang.omegaspigot.network.VarIntUtil.readVarInt(this.a); // PandaSpigot - Optimize VarInt reading
      }
  
      public long f() {
@@ -40,7 +40,7 @@ index b48eeb63ad61b18a630f2feb4fd6203e5e3e6c80..6c46349fb24856bb2b0f94d84536f64d
 -        }
 -
 -        this.writeByte(i);
-+        com.hpfxd.pandaspigot.network.VarIntUtil.writeVarInt(this.a, i); // PandaSpigot - Optimize VarInt writing
++        dev.zaryxstudios.escanergang.omegaspigot.network.VarIntUtil.writeVarInt(this.a, i); // PandaSpigot - Optimize VarInt writing
      }
  
      public void b(long i) {

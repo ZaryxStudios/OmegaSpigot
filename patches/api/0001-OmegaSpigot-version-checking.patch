@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: hpfxd <me@hpfxd.com>
 Date: Tue, 26 Oct 2021 20:51:53 -0400
-Subject: [PATCH] PandaSpigot version checking
+Subject: [PATCH] OmegaSpigot version checking
 
 
 diff --git a/src/main/java/org/bukkit/command/defaults/VersionCommand.java b/src/main/java/org/bukkit/command/defaults/VersionCommand.java
@@ -40,8 +40,8 @@ index e91e1d8c1215d19a78611d3c8302ed9634bfbda5..62f36e8f9d033c82318141e4edc0636c
          String version = Bukkit.getVersion();
          if (version == null) version = "Custom";
 +        // PandaSpigot start
-+        if (version.startsWith("git-PandaSpigot-")) {
-+            String[] parts = version.substring("git-PandaSpigot-".length()).split("[-\\s]");
++        if (version.startsWith("git-OmegaSpigot-")) {
++            String[] parts = version.substring("git-OmegaSpigot-".length()).split("[-\\s]");
 +            int distance;
 +            try {
 +                distance = fetchDownloadApiDistance(Integer.parseInt(parts[0]));
@@ -79,7 +79,7 @@ index e91e1d8c1215d19a78611d3c8302ed9634bfbda5..62f36e8f9d033c82318141e4edc0636c
 +        try {
 +            HttpURLConnection connection = (HttpURLConnection) new URL("https://downloads.hpfxd.com/v2/projects/pandaspigot/versions/1.8.8").openConnection();
 +            connection.setRequestProperty("Accept", "application/json");
-+            connection.setRequestProperty("User-Agent", "PandaSpigot/" + Bukkit.getVersion());
++            connection.setRequestProperty("User-Agent", "OmegaSpigot/" + Bukkit.getVersion());
 +            connection.connect();
 +            if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) return -2;
 +            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), Charsets.UTF_8))) {
@@ -108,7 +108,7 @@ index e91e1d8c1215d19a78611d3c8302ed9634bfbda5..62f36e8f9d033c82318141e4edc0636c
 +        try {
 +            HttpURLConnection connection = (HttpURLConnection) new URL("https://api.github.com/repos/" + repo + "/compare/" + branch + "..." + hash).openConnection();
 +            connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
-+            connection.setRequestProperty("User-Agent", "PandaSpigot/" + Bukkit.getVersion());
++            connection.setRequestProperty("User-Agent", "OmegaSpigot/" + Bukkit.getVersion());
 +            connection.connect();
 +            if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) return -2; // Unknown commit
 +            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), Charsets.UTF_8))) {

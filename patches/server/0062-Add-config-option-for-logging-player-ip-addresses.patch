@@ -4,11 +4,11 @@ Date: Tue, 5 Oct 2021 20:04:21 +0200
 Subject: [PATCH] Add config option for logging player ip addresses
 
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
 index fcf7738c75f21ad23693d903b476c65b4a207a84..1d8e4d1050ebafef8784920481621965fd5c212f 100644
---- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
-@@ -119,4 +119,8 @@ public class PandaSpigotConfig {
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
+@@ -119,4 +119,8 @@ public class OmegaSpigotConfig {
          "https://docs.papermc.io/paper/reference/paper-global-configuration#packet-limiter\n" +
          "(note that \"max-packet-rate\" is renamed to \"maxPacketRate\")")
      public PacketLimiterConfig packetLimiter = PacketLimiterConfig.createDefault();
@@ -27,7 +27,7 @@ index b32c64263d6d996008d0aa3b25df1d8d54482aa1..9faa98501275cbd03a34dcc83f281d1e
      public String d() {
 -        return this.i != null ? this.i.toString() + " (" + this.networkManager.getSocketAddress().toString() + ")" : String.valueOf(this.networkManager.getSocketAddress());
 +        // PandaSpigot start
-+        String ip = com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().logPlayerIpAddresses ? this.networkManager.getSocketAddress().toString() : "<ip address withheld>";
++        String ip = dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().logPlayerIpAddresses ? this.networkManager.getSocketAddress().toString() : "<ip address withheld>";
 +        return this.i != null ? this.i.toString() + " (" + ip + ")" : ip;
 +        // PandaSpigot end
      }
@@ -42,7 +42,7 @@ index c8fb991f1a9c88d4f519ae812921085366e09b92..a72315b62d5731b74f077cc7a02d9566
  
          if (networkmanager.getSocketAddress() != null) {
 -            s1 = networkmanager.getSocketAddress().toString();
-+            s1 = com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().logPlayerIpAddresses ? networkmanager.getSocketAddress().toString() : "<ip address withheld>"; // PandaSpigot
++            s1 = dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().logPlayerIpAddresses ? networkmanager.getSocketAddress().toString() : "<ip address withheld>"; // PandaSpigot
          }
  
          // Spigot start - spawn location event
@@ -55,7 +55,7 @@ index 3d99741bd6a3f3b337af3ff225a7fb7da34d73ed..882bf62cc8a08e51b5d315c608194a68
                              }
  
 -                            ServerConnection.e.warn("Failed to handle packet for " + networkmanager.getSocketAddress(), exception);
-+                            ServerConnection.e.warn("Failed to handle packet for " + (com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().logPlayerIpAddresses ? networkmanager.getSocketAddress() : "<ip address withheld>"), exception); // PandaSpigot
++                            ServerConnection.e.warn("Failed to handle packet for " + (dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().logPlayerIpAddresses ? networkmanager.getSocketAddress() : "<ip address withheld>"), exception); // PandaSpigot
                              final ChatComponentText chatcomponenttext = new ChatComponentText("Internal server error");
  
                              networkmanager.a(new PacketPlayOutKickDisconnect(chatcomponenttext), new GenericFutureListener() {

@@ -7,7 +7,7 @@
  * MIT License
  */
 
-package com.hpfxd.pandaspigot.paperclip;
+package dev.zaryxstudios.escanergang.omegaspigot.paperclip;
 
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;

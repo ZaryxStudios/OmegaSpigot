@@ -10,7 +10,7 @@ repositories {
     maven(url = "https://hub.spigotmc.org/nexus/content/groups/public")
 }
 
-group = "com.hpfxd.pandaspigot"
+group = "dev.zaryxstudios.escanergang.omegaspigot"
 version = "1.8.8-R0.1-SNAPSHOT"
 
 tasks {

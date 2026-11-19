@@ -7,11 +7,11 @@ This patch adds configuration options for:
 - Player data reading/writing
 - Region writing (world data)
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
 index 224dfa106c15a0eb6db3f3f9208267ec83b425c0..775c3d71c863361d5ba58395c5289bb170ec2fa3 100644
---- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-@@ -26,4 +26,13 @@ public class PandaSpigotWorldConfig {
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
+@@ -26,4 +26,13 @@ public class OmegaSpigotWorldConfig {
              "will make moving their head very difficult, especially for players with higher latency.\n" +
              "With this option enabled, they will be able to move their head just like normal.")
      public boolean smoothTeleportation = false;
@@ -33,7 +33,7 @@ index b4056a28a00ba706a4cec5c22ed815ca9c980196..ba13f3f20bb86f667178f51f4d3d1df6
  
      public void save(EntityHuman entityhuman) {
          try {
-+            if (entityhuman.world.pandaSpigotConfig.disablePlayerData) return; // PandaSpigot - Configurable player data
++            if (entityhuman.world.omegaSpigotConfig.disablePlayerData) return; // PandaSpigot - Configurable player data
              NBTTagCompound nbttagcompound = new NBTTagCompound();
  
              entityhuman.e(nbttagcompound);
@@ -41,7 +41,7 @@ index b4056a28a00ba706a4cec5c22ed815ca9c980196..ba13f3f20bb86f667178f51f4d3d1df6
      }
  
      public NBTTagCompound load(EntityHuman entityhuman) {
-+        if (entityhuman.world.pandaSpigotConfig.disablePlayerData) return null; // PandaSpigot - Configurable player data
++        if (entityhuman.world.omegaSpigotConfig.disablePlayerData) return null; // PandaSpigot - Configurable player data
          NBTTagCompound nbttagcompound = null;
  
          try {
@@ -53,7 +53,7 @@ index e1478127b9d1bc308a570ef3e137762f14a1225b..08ebad639873aee9572e30519acc30be
                  iprogressupdate.c("Saving chunks");
              }
  
-+            if (!this.pandaSpigotConfig.disableChunkSaving) { // PandaSpigot - Configurable chunk saving
++            if (!this.omegaSpigotConfig.disableChunkSaving) { // PandaSpigot - Configurable chunk saving
              this.chunkProvider.saveChunks(flag, iprogressupdate);
 +            } // PandaSpigot
              // CraftBukkit - ArrayList -> Collection

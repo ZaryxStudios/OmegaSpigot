@@ -22,7 +22,7 @@ jobs:
           git config --global init.defaultBranch master
 
       - name: Setup build environment
-        run: ./panda setup
+        run: ./omega setup
 
       - name: Build
         run: ./gradlew build

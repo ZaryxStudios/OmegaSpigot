@@ -3,7 +3,7 @@ From: WilyWork <hezodions@gmail.com>
 Date: Wed, 1 Jul 2026 20:16:55 -0300
 Subject: [PATCH] Add growable plant Block API
 
-Introduce PandaGrowablePlant for age-based NMS plants and expose the data through the public Block API implementation.
+Introduce OmegaGrowablePlant for age-based NMS plants and expose the data through the public Block API implementation.
 
 This keeps the API-facing CraftBlock bridge and the underlying server abstraction in a single patch.
 
@@ -16,7 +16,7 @@ index ddc213517d36fb772999182d66baf7f9ea49d29b..c12465aead468be5fd4930dc61113f41
  import org.bukkit.craftbukkit.event.CraftEventFactory; // CraftBukkit
  
 -public class BlockCactus extends Block {
-+public class BlockCactus extends Block implements PandaGrowablePlant { // PandaSpigot
++public class BlockCactus extends Block implements OmegaGrowablePlant { // PandaSpigot
  
      public static final BlockStateInteger AGE = BlockStateInteger.of("age", 0, 15);
  
@@ -42,7 +42,7 @@ index 8eb1bebaec2d35b8bfa57be5ef19936ad5770a1f..3ffb28cb0e649026e3548480e0e5915d
  import org.bukkit.craftbukkit.event.CraftEventFactory; // CraftBukkit
  
 -public class BlockCocoa extends BlockDirectional implements IBlockFragilePlantElement {
-+public class BlockCocoa extends BlockDirectional implements IBlockFragilePlantElement, PandaGrowablePlant { // PandaSpigot
++public class BlockCocoa extends BlockDirectional implements IBlockFragilePlantElement, OmegaGrowablePlant { // PandaSpigot
  
      public static final BlockStateInteger AGE = BlockStateInteger.of("age", 0, 2);
  
@@ -68,7 +68,7 @@ index f9429059302cfeba9d7ea6c1cb7f0dbee27bf0e4..bee09025dbc55612c4ee04b6ff2d99ae
  import org.bukkit.craftbukkit.event.CraftEventFactory; // CraftBukkit
  
 -public class BlockCrops extends BlockPlant implements IBlockFragilePlantElement {
-+public class BlockCrops extends BlockPlant implements IBlockFragilePlantElement, PandaGrowablePlant { // PandaSpigot
++public class BlockCrops extends BlockPlant implements IBlockFragilePlantElement, OmegaGrowablePlant { // PandaSpigot
  
      public static final BlockStateInteger AGE = BlockStateInteger.of("age", 0, 7);
  
@@ -94,7 +94,7 @@ index 374f06caa0e81aff99e645a197b024e423e078c2..f7f67250c58f428caa7e7b4d35738346
  import java.util.Random;
  
 -public class BlockNetherWart extends BlockPlant {
-+public class BlockNetherWart extends BlockPlant implements PandaGrowablePlant { // PandaSpigot
++public class BlockNetherWart extends BlockPlant implements OmegaGrowablePlant { // PandaSpigot
  
      public static final BlockStateInteger AGE = BlockStateInteger.of("age", 0, 3);
  
@@ -120,7 +120,7 @@ index 337f2c40e3ecd817a0b838a624a661bb459f589e..166ce9f8aa62336a6dcba1d4739d4623
  import java.util.Random;
  
 -public class BlockReed extends Block {
-+public class BlockReed extends Block implements PandaGrowablePlant { // PandaSpigot
++public class BlockReed extends Block implements OmegaGrowablePlant { // PandaSpigot
  
      public static final BlockStateInteger AGE = BlockStateInteger.of("age", 0, 15);
  
@@ -179,7 +179,7 @@ index 24daf93ef18f46e307cf35e627f900a545509de0..4fa8c69d39d1c30e106668950be2de7f
  import org.bukkit.craftbukkit.event.CraftEventFactory; // CraftBukkit
  
 -public class BlockStem extends BlockPlant implements IBlockFragilePlantElement {
-+public class BlockStem extends BlockPlant implements IBlockFragilePlantElement, PandaGrowablePlant { // PandaSpigot
++public class BlockStem extends BlockPlant implements IBlockFragilePlantElement, OmegaGrowablePlant { // PandaSpigot
  
      public static final BlockStateInteger AGE = BlockStateInteger.of("age", 0, 7);
      public static final BlockStateDirection FACING = BlockStateDirection.of("facing", new Predicate() {
@@ -196,19 +196,19 @@ index 24daf93ef18f46e307cf35e627f900a545509de0..4fa8c69d39d1c30e106668950be2de7f
      protected BlockStateList getStateList() {
          return new BlockStateList(this, new IBlockState[] { BlockStem.AGE, BlockStem.FACING});
      }
-diff --git a/src/main/java/net/minecraft/server/PandaGrowablePlant.java b/src/main/java/net/minecraft/server/PandaGrowablePlant.java
+diff --git a/src/main/java/net/minecraft/server/OmegaGrowablePlant.java b/src/main/java/net/minecraft/server/OmegaGrowablePlant.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..69bbf0a4e38967c416557752d1acd0b0d189c36d
 --- /dev/null
-+++ b/src/main/java/net/minecraft/server/PandaGrowablePlant.java
++++ b/src/main/java/net/minecraft/server/OmegaGrowablePlant.java
 @@ -0,0 +1,23 @@
 +package net.minecraft.server;
 +
-+public interface PandaGrowablePlant {
++public interface OmegaGrowablePlant {
 +
-+    static PandaGrowablePlant getById(int id) {
++    static OmegaGrowablePlant getById(int id) {
 +        Block block = Block.getById(id);
-+        return block instanceof PandaGrowablePlant ? (PandaGrowablePlant) block : null;
++        return block instanceof OmegaGrowablePlant ? (OmegaGrowablePlant) block : null;
 +    }
 +
 +    BlockStateInteger getGrowthState();
@@ -238,9 +238,9 @@ index caa7e842cbbe1b666d96a6d3b94fd49fe9bf50f3..345f72ce4d17f4f5122868b561e79975
 +        return chunk.getHandle().getBlockData(new BlockPosition(this.x, this.y, this.z));
 +    }
 +
-+    private PandaGrowablePlant getGrowablePlant(IBlockData blockData) {
++    private OmegaGrowablePlant getGrowablePlant(IBlockData blockData) {
 +        net.minecraft.server.Block block = blockData.getBlock();
-+        return block instanceof PandaGrowablePlant ? (PandaGrowablePlant) block : null;
++        return block instanceof OmegaGrowablePlant ? (OmegaGrowablePlant) block : null;
 +    }
 +
 +    public boolean isGrowablePlant() {
@@ -249,18 +249,18 @@ index caa7e842cbbe1b666d96a6d3b94fd49fe9bf50f3..345f72ce4d17f4f5122868b561e79975
 +
 +    public int getGrowthLevel() {
 +        IBlockData blockData = getNMSBlockData();
-+        PandaGrowablePlant plant = getGrowablePlant(blockData);
++        OmegaGrowablePlant plant = getGrowablePlant(blockData);
 +        return plant != null ? plant.getGrowthLevel(blockData) : -1;
 +    }
 +
 +    public int getMaxGrowthLevel() {
-+        PandaGrowablePlant plant = getGrowablePlant(getNMSBlockData());
++        OmegaGrowablePlant plant = getGrowablePlant(getNMSBlockData());
 +        return plant != null ? plant.getMaxGrowthLevel() : -1;
 +    }
 +
 +    public boolean isFullyGrown() {
 +        IBlockData blockData = getNMSBlockData();
-+        PandaGrowablePlant plant = getGrowablePlant(blockData);
++        OmegaGrowablePlant plant = getGrowablePlant(blockData);
 +        return plant != null && plant.isFullyGrown(blockData);
 +    }
 +    // PandaSpigot end

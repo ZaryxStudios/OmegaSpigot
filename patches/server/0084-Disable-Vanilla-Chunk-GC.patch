@@ -10,7 +10,7 @@ index 9ed5d90cb8fa7502d7e1218ba31fec957a8f8520..99617ff8ca93f59f67b08b9d6eca3d7b
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -963,6 +963,7 @@ public class WorldServer extends World implements IAsyncTaskHandler {
-             if (!this.pandaSpigotConfig.disableChunkSaving) { // PandaSpigot - Configurable chunk saving
+             if (!this.omegaSpigotConfig.disableChunkSaving) { // PandaSpigot - Configurable chunk saving
              this.chunkProvider.saveChunks(flag, iprogressupdate);
              } // PandaSpigot
 +            /* // PandaSpigot start - Disable Vanilla Chunk GC

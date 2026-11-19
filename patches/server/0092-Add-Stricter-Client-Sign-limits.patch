@@ -17,7 +17,7 @@ may use this for storing data out of the rendered area.
 
 it only impacts data sent to and from client to extend mojangs limit.
 
-Set -DPanda.maxSignLength=XX to change limit or -1 to disable
+Set -DOmega.maxSignLength=XX to change limit or -1 to disable
 
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
 index 8e47d23be2e54c7c5b11f3e5f68cb4afca0aae57..6aaf3a36b919bcee28880f6fddf8cde875607c5d 100644
@@ -49,7 +49,7 @@ index e927fd237d4ac6a0752045d65f27ee947b7b0636..21423e552570adeb9601b760c9b7b107
      public boolean isEditable = true;
      private EntityHuman h;
      private final CommandObjectiveExecutor i = new CommandObjectiveExecutor();
-+    public static final int MAX_SIGN_LINE_LENGTH = Integer.getInteger("Panda.maxSignLength", 80); // PandaSpigot
++    public static final int MAX_SIGN_LINE_LENGTH = Integer.getInteger("Omega.maxSignLength", 80); // PandaSpigot
  
      public TileEntitySign() {}
  

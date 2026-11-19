@@ -4,11 +4,11 @@ Date: Tue, 8 Nov 2022 16:51:21 -0500
 Subject: [PATCH] Backport TabCompleteEvent and AsyncTabCompleteEvent
 
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/console/PandaConsoleCompleter.java b/src/main/java/com/hpfxd/pandaspigot/console/PandaConsoleCompleter.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/console/OmegaConsoleCompleter.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/console/OmegaConsoleCompleter.java
 index 1aa335eca007be52e9813ce933d271eac9b1fdce..9212f9798707a50860daaff1d3520d52549c2f7a 100644
---- a/src/main/java/com/hpfxd/pandaspigot/console/PandaConsoleCompleter.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/console/PandaConsoleCompleter.java
-@@ -3,11 +3,13 @@ package com.hpfxd.pandaspigot.console;
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/console/OmegaConsoleCompleter.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/console/OmegaConsoleCompleter.java
+@@ -3,11 +3,13 @@ package dev.zaryxstudios.escanergang.omegaspigot.console;
  import net.minecraft.server.DedicatedServer;
  import org.bukkit.craftbukkit.CraftServer;
  import org.bukkit.craftbukkit.util.Waitable;
@@ -22,7 +22,7 @@ index 1aa335eca007be52e9813ce933d271eac9b1fdce..9212f9798707a50860daaff1d3520d52
  import java.util.List;
  import java.util.concurrent.ExecutionException;
  import java.util.logging.Level;
-@@ -21,6 +23,38 @@ public class PandaConsoleCompleter implements Completer {
+@@ -21,6 +23,38 @@ public class OmegaConsoleCompleter implements Completer {
      
      @Override
      public void complete(LineReader reader, ParsedLine line, List<Candidate> candidates) {
@@ -61,10 +61,10 @@ index 1aa335eca007be52e9813ce933d271eac9b1fdce..9212f9798707a50860daaff1d3520d52
          CompletionWaiter waiter = new CompletionWaiter(line.line());
          this.server.processQueue.add(waiter);
          
-@@ -49,8 +83,12 @@ public class PandaConsoleCompleter implements Completer {
+@@ -49,8 +83,12 @@ public class OmegaConsoleCompleter implements Completer {
          @Override
          protected List<String> evaluate() {
-             final CraftServer server = PandaConsoleCompleter.this.server.server;
+             final CraftServer server = OmegaConsoleCompleter.this.server.server;
 -            
 -            return server.getCommandMap().tabComplete(server.getConsoleSender(), this.buffer);
 +            final List<String> offers = server.getCommandMap().tabComplete(server.getConsoleSender(), buffer);

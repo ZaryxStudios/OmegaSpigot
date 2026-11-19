@@ -13,7 +13,7 @@ index 73de7d6d4dc619416363a7d8557b71b850313cfb..42c077870727d1eb40bc9bf5e0a3ca58
  
      public void makeSound(Entity entity, String s, float f, float f1) {
 +        // PandaSpigot start - EntitySoundEvent
-+        com.hpfxd.pandaspigot.event.sound.EntitySoundEvent event = new com.hpfxd.pandaspigot.event.sound.EntitySoundEvent(
++        dev.zaryxstudios.escanergang.omegaspigot.event.sound.EntitySoundEvent event = new dev.zaryxstudios.escanergang.omegaspigot.event.sound.EntitySoundEvent(
 +                entity.getBukkitEntity(), s, f, f1);
 +        if (!event.callEvent()) return;
 +
@@ -31,7 +31,7 @@ index 73de7d6d4dc619416363a7d8557b71b850313cfb..42c077870727d1eb40bc9bf5e0a3ca58
  
      public void a(EntityHuman entityhuman, String s, float f, float f1) {
 +        // PandaSpigot start - PlayerSoundEvent
-+        com.hpfxd.pandaspigot.event.sound.PlayerSoundEvent event = new com.hpfxd.pandaspigot.event.sound.PlayerSoundEvent(
++        dev.zaryxstudios.escanergang.omegaspigot.event.sound.PlayerSoundEvent event = new dev.zaryxstudios.escanergang.omegaspigot.event.sound.PlayerSoundEvent(
 +                (org.bukkit.entity.Player) entityhuman.getBukkitEntity(), s, f, f1);
 +        if (!event.callEvent()) return;
 +
@@ -49,7 +49,7 @@ index 73de7d6d4dc619416363a7d8557b71b850313cfb..42c077870727d1eb40bc9bf5e0a3ca58
  
      public void makeSound(double d0, double d1, double d2, String s, float f, float f1) {
 +        // PandaSpigot start - SoundEvent
-+        com.hpfxd.pandaspigot.event.sound.SoundEvent event = new com.hpfxd.pandaspigot.event.sound.SoundEvent(
++        dev.zaryxstudios.escanergang.omegaspigot.event.sound.SoundEvent event = new dev.zaryxstudios.escanergang.omegaspigot.event.sound.SoundEvent(
 +                new org.bukkit.Location(this.world, d0, d1, d2), s, f, f1);
 +        if (!event.callEvent()) return;
 +

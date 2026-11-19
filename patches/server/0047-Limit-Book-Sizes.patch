@@ -4,11 +4,11 @@ Date: Sat, 17 Nov 2018 00:08:54 -0500
 Subject: [PATCH] Limit Book Sizes
 
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
 index 99367c42858cf97190a3b090f258b18e4aea3ac2..7db0c0097bcb38e4e49ab12879c230770e47334d 100644
---- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
-@@ -109,4 +109,8 @@ public class PandaSpigotConfig {
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
+@@ -109,4 +109,8 @@ public class OmegaSpigotConfig {
      public boolean isProxyOnlineMode() {
          return Bukkit.getOnlineMode() || (SpigotConfig.bungee && this.proxyOnlineMode);
      }
@@ -29,8 +29,8 @@ index 5842cedc81b90b4f3565d71ba5dfa8c0c98dfca6..89d251abc16d7a98a5e6d5a5b3298b3a
 +    private boolean validateBook(ItemStack testStack) {
 +        NBTTagList pageList = testStack.getTag().getList("pages", 8);
 +        long byteTotal = 0;
-+        int maxBookPageSize = com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().maxBookPageSize;
-+        double multiplier = Math.max(0.3D, Math.min(1D, com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().maxBookTotalSizeMultiplier));
++        int maxBookPageSize = dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().maxBookPageSize;
++        double multiplier = Math.max(0.3D, Math.min(1D, dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().maxBookTotalSizeMultiplier));
 +        long byteAllowed = maxBookPageSize;
 +        for (int i = 0; i < pageList.size(); ++i) {
 +            String testString = pageList.getString(i);

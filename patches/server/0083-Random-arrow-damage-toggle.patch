@@ -4,11 +4,11 @@ Date: Thu, 20 Apr 2023 10:34:34 -0600
 Subject: [PATCH] Random arrow damage toggle
 
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
 index 9c750d34b6ab7ddd95fddcf69b957c06cf1dc650..a7a4dc5864bbb71cd3e815facb3443b63e5c70f7 100644
---- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-@@ -49,4 +49,8 @@ public class PandaSpigotWorldConfig {
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
+@@ -49,4 +49,8 @@ public class OmegaSpigotWorldConfig {
      public boolean optimizeLiquidExplosions = true; // This seems like a pretty sane default
  
      public boolean optimizeArmorStandMovement = false; // Doesn't fully emulate vanilla behavior, see TacoSpigot issue #1
@@ -26,7 +26,7 @@ index d45deff6c1358a441d3d7a659fca9c9c7b595c0f..60ba16d231e2d614f56aee3c7ba5c0d4
                      int k = MathHelper.f((double) f2 * this.damage);
  
 -                    if (this.isCritical()) {
-+                    if (this.isCritical() && this.world.pandaSpigotConfig.randomArrowDamage) { // PandaSpigot
++                    if (this.isCritical() && this.world.omegaSpigotConfig.randomArrowDamage) { // PandaSpigot
                          k += this.random.nextInt(k / 2 + 2);
                      }
  

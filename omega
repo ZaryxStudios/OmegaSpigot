@@ -77,19 +77,19 @@ case "$1" in
         cd "$basedir"
     ;;
     "a" | "api")
-        cd "$basedir/PandaSpigot-API"
+        cd "$basedir/OmegaSpigot-API"
     ;;
     "s" | "server")
-        cd "$basedir/PandaSpigot-Server"
+        cd "$basedir/OmegaSpigot-Server"
     ;;
     "c" | "clean")
-        rm -rf PandaSpigot-API/build
-        rm -rf PandaSpigot-Server/build
-        echo "Cleaned PandaSpigot build files"
+        rm -rf OmegaSpigot-API/build
+        rm -rf OmegaSpigot-Server/build
+        echo "Cleaned OmegaSpigot build files"
     ;;
     "dc" | "distclean" | "reset")
-        rm -rf PandaSpigot-API
-        rm -rf PandaSpigot-Server
+        rm -rf OmegaSpigot-API
+        rm -rf OmegaSpigot-Server
         rm -rf base
         rm -rf work
         echo "Cleaned ALL generated, build and work files"
@@ -105,8 +105,8 @@ case "$1" in
         case "$2" in
             "s" | "server")
             mkdir -p "$basedir/work/Temp"
-            echo "$basedir/PandaSpigot-Server" > "$basedir/work/Temp/PAPER_LAST_EDIT"
-            cd "$basedir/PandaSpigot-Server"
+            echo "$basedir/OmegaSpigot-Server" > "$basedir/work/Temp/PAPER_LAST_EDIT"
+            cd "$basedir/OmegaSpigot-Server"
             (
                 set -e
 
@@ -117,8 +117,8 @@ case "$1" in
             ;;
             "a" | "api")
             mkdir -p "$basedir/work/Temp"
-            echo "$basedir/PandaSpigot-API" > "$basedir/work/Temp/PAPER_LAST_EDIT"
-            cd "$basedir/PandaSpigot-API"
+            echo "$basedir/OmegaSpigot-API" > "$basedir/work/Temp/PAPER_LAST_EDIT"
+            cd "$basedir/OmegaSpigot-API"
             (
                 set -e
 
@@ -148,19 +148,19 @@ case "$1" in
     ;;
     "install")
         if [[ -f "$RCPATH" ]] ; then
-            NAME="panda"
+            NAME="omega"
             if [[ ! -z "${2+x}" ]] ; then
                 NAME="$2"
             fi
             (grep "alias $NAME=" "$RCPATH" > /dev/null) && (sed -i "s|alias $NAME=.*|alias $NAME='. $SOURCE'|g" "$RCPATH") || (echo "alias $NAME='. $SOURCE'" >> "$RCPATH")
             alias "$NAME=. $SOURCE"
-            echo "You can now just type '$NAME' at any time to access the panda tool."
+            echo "You can now just type '$NAME' at any time to access the omega tool."
         else
-          echo "We were unable to install the panda build tool alias: $RCPATH is missing"
+          echo "We were unable to install the omega build tool alias: $RCPATH is missing"
         fi
     ;;
     *)
-        echo "PandaSpigot build tool command. This provides a variety of commands to build and manage the PandaSpigot build"
+        echo "OmegaSpigot build tool command. This provides a variety of commands to build and manage the OmegaSpigot build"
         echo "environment. For all of the functionality of this command to be available, you must first run the"
         echo "'install' command. View below for details. For essential building and patching, you do not need to do the install."
         echo ""
@@ -169,24 +169,24 @@ case "$1" in
         echo "  * setup               | Remap, decompile, and patch Minecraft. Can be run from anywhere."
         echo "  * p, patch            | Apply all patches to the project without building it. Can be run from anywhere."
         echo "  * j, jar              | Apply all patches and build the project, paperclip.jar will be output. Can be run from anywhere."
-        echo "  * c, clean            | Removes build files under PandaSpigot-API, PandaSpigot-Server."
-        echo "  * dc, distclean       | Removes all generated files, PandaSpigot-API, PandaSpigot-Server, base, and work."
+        echo "  * c, clean            | Removes build files under OmegaSpigot-API, OmegaSpigot-Server."
+        echo "  * dc, distclean       | Removes all generated files, OmegaSpigot-API, OmegaSpigot-Server, base, and work."
         echo "  * con, continue       | Shortcut command for running git am --continue, or git rebase --continue."
         echo ""
         echo " These commands require the install command before use:"
         echo "  * r, root             | Change directory to the root of the project."
-        echo "  * a. api              | Move to the PandaSpigot-API directory."
-        echo "  * s, server           | Move to the PandaSpigot-Server directory."
+        echo "  * a. api              | Move to the OmegaSpigot-API directory."
+        echo "  * s, server           | Move to the OmegaSpigot-Server directory."
         echo "  * e, edit             | Use to edit a specific patch, give it the argument \"server\" or \"api\""
         echo "                        | respectively to edit the correct project. Use the argument \"continue\" after"
         echo "                        | the changes have been made to finish and rebuild patches. Can be called from anywhere."
         echo ""
         echo "  * install             | Add an alias to $RCPATH to allow full functionality of this script. Run as:"
-        echo "                        |     . ./panda install"
-        echo "                        | After you run this command you'll be able to just run 'panda' from anywhere."
-        echo "                        | The default name for the resulting alias is 'panda', you can give an argument to override"
+        echo "                        |     . ./omega install"
+        echo "                        | After you run this command you'll be able to just run 'omega' from anywhere."
+        echo "                        | The default name for the resulting alias is 'omega', you can give an argument to override"
         echo "                        | this default, such as:"
-        echo "                        |     . ./panda install example"
+        echo "                        |     . ./omega install example"
         echo "                        | Which will allow you to run 'example' instead."
     ;;
 esac

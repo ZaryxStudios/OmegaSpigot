@@ -5,11 +5,11 @@ Subject: [PATCH] Better spawn protection
 
 Protect spawn from explosions
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
 index f1769ecc8fe0725171b638b7d8b7bbbc9e5250d1..c63cd15c13b503d91ef0245ffe0de7f85dd6f540 100644
---- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
-@@ -127,4 +127,7 @@ public class PandaSpigotConfig {
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
+@@ -127,4 +127,7 @@ public class OmegaSpigotConfig {
      public int tabSpamIncrement = 10;
  
      public int tabSpamLimit = 500;
@@ -40,7 +40,7 @@ index 9d8bb72b469163db7def78f623d18dc4056b1f6b..e2b6f0a788fe56cacbadb457a7c65b34
      public boolean a(Explosion explosion, World world, BlockPosition blockposition, IBlockData iblockdata, float f) {
 -        return true;
 +        // PandaSpigot start - Better spawn protection
-+        if (com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().betterSpawnProtection) {
++        if (dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().betterSpawnProtection) {
 +            return !MinecraftServer.getServer().a(world, blockposition, (this instanceof EntityHuman) ? (EntityHuman)this : null);
 +        } else {
 +            return true;

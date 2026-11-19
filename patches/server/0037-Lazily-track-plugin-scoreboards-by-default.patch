@@ -9,11 +9,11 @@ Most plugins don't even need the (vanilla) functionality that requires all plugi
 scoreboards to be tracked by the server. Instead, only track scoreboards when an
 objective is added with a non-dummy criteria.
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
 index f021fd0c7622a788b809ecbf896162912ab4b0d0..4a3b170542d6266cb5868a925c6d3d081fc9598f 100644
---- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
-@@ -93,4 +93,10 @@ public class PandaSpigotConfig {
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
+@@ -93,4 +93,10 @@ public class OmegaSpigotConfig {
      }
      
      //------------------------------------------------------------------------
@@ -66,7 +66,7 @@ index fbea5db29a49d72c6859aa77073dee2021aa42ea..ccd7b3036e1f08ca3c95bdc9627c5b3d
          org.spigotmc.AsyncCatcher.catchOp( "scoreboard creation"); // Spigot
          CraftScoreboard scoreboard = new CraftScoreboard(new ScoreboardServer(server));
 +        // PandaSpigot start
-+        if (com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().trackPluginScoreboards) {
++        if (dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().trackPluginScoreboards) {
 +            scoreboard.registeredGlobally = true;
          scoreboards.add(scoreboard);
 +        }

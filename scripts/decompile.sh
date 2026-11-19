@@ -8,7 +8,7 @@ workdir="$basedir/base"
 minecraftversion=$(cat "$workdir/Paper/BuildData/info.json"  | grep minecraftVersion | cut -d '"' -f 4)
 decompiledir="$workdir/mc-dev"
 spigotdecompiledir="$decompiledir/spigot"
-pandadecompiledir="$decompiledir/panda"
+omegadecompiledir="$decompiledir/omega"
 classdir="$decompiledir/classes"
 versionjson="$workdir/mc-dev/$minecraftversion.json"
 
@@ -55,7 +55,7 @@ function downloadLibraries {
 
 # prep folders
 mkdir -p "$spigotdecompiledir"
-mkdir -p "$pandadecompiledir"
+mkdir -p "$omegadecompiledir"
 
 if [ ! -d "$classdir" ]; then
     echo "Extracting NMS classes..."
@@ -71,15 +71,15 @@ if [ ! -d "$classdir" ]; then
     set -e
 fi
 
-# Updated FernFlower (for Panda mc-dev imports)
+# Updated FernFlower (for Omega mc-dev imports)
 
-if [ ! -d "$pandadecompiledir/net/minecraft/server" ]; then
+if [ ! -d "$omegadecompiledir/net/minecraft/server" ]; then
     echo "Decompiling classes (Stage 1)..."
     cd "$basedir"
     set +e
-    java -jar "$basedir/bin/fernflower.jar" -dgs=1 -hdc=0 -asc=1 -udv=0 -aoa=1 "$classdir" "$pandadecompiledir"
+    java -jar "$basedir/bin/fernflower.jar" -dgs=1 -hdc=0 -asc=1 -udv=0 -aoa=1 "$classdir" "$omegadecompiledir"
     if [ "$?" != "0" ]; then
-        rm -rf "$pandadecompiledir/net"
+        rm -rf "$omegadecompiledir/net"
         echo "Failed to decompile classes."
         exit 1
     fi

@@ -4,11 +4,11 @@ Date: Fri, 19 Jun 2026 17:38:48 -0300
 Subject: [PATCH] Alternative Chunk Ticking Selection
 
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
 index a6427ebaa834ef14d295e6852cfacc7dcb37e61e..34b8ca649aca13dc9a8c2de9df2e568112aff6c0 100644
---- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-@@ -53,4 +53,15 @@ public class PandaSpigotWorldConfig {
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
+@@ -53,4 +53,15 @@ public class OmegaSpigotWorldConfig {
      @Comment("This option controls whether or not there is a chance for arrow crits to deal extra damage.\n" +
              "By default, this is true (vanilla behaviour)")
      public boolean randomArrowDamage = true;
@@ -18,7 +18,7 @@ index a6427ebaa834ef14d295e6852cfacc7dcb37e61e..34b8ca649aca13dc9a8c2de9df2e5681
 +            "selects chunks around players for ticking, improving performance at the cost\n" +
 +            "of deviating from vanilla chunk ticking behaviour (for example, plant growth\n" +
 +            "rates may differ).\n" +
-+            "When disabled, uses PandaSpigot's chunk ticking implementation based on\n" +
++            "When disabled, uses OmegaSpigot's chunk ticking implementation based on\n" +
 +            "the vanilla 1.9 algorithm, which more closely matches vanilla 1.8/1.9\n" +
 +            "behaviour while still providing performance optimizations.\n" +
 +            "Default: false")
@@ -172,7 +172,7 @@ index 9b86cdd3b83ae8b0c040dc9d250b54684d0b7510..522c63e7f884a8b2202b111c81df9b54
          int optimalChunks = spigotConfig.chunksPerTick;
          // Quick conditions to allow us to exist early
 -        if ( optimalChunks > 0  ) {
-+        if ( this.pandaSpigotConfig.useSpigotChunkTickingSelection && optimalChunks > 0 ) { // PandaSpigot - Alternative Chunk Ticking Selection
++        if ( this.omegaSpigotConfig.useSpigotChunkTickingSelection && optimalChunks > 0 ) { // PandaSpigot - Alternative Chunk Ticking Selection
          // Keep chunks with growth inside of the optimal chunk range
          int chunksPerPlayer = Math.min( 200, Math.max( 1, (int) ( ( ( optimalChunks - players.size() ) / (double) players.size() ) + 0.5 ) ) );
          int randRange = 3 + chunksPerPlayer / 30;
@@ -196,10 +196,10 @@ index aa2f0f81723cc046e29b397fc31a00b636e3a0b8..be21eaacf73405790fb963c0ebe1c69c
 +    // PandaSpigot start - Alternative Chunk Ticking Selection
 +    protected void h() {
 +        super.h();
-+        if (this.pandaSpigotConfig.useSpigotChunkTickingSelection) {
++        if (this.omegaSpigotConfig.useSpigotChunkTickingSelection) {
 +            tickSpigotChunkTickSelection();
 +        } else {
-+            tickPandaChunkTickSelection();
++            tickOmegaChunkTickSelection();
 +        }
 +    }
 +
@@ -248,7 +248,7 @@ index aa2f0f81723cc046e29b397fc31a00b636e3a0b8..be21eaacf73405790fb963c0ebe1c69c
 +        }
 +    }
 +
-+    private void tickPandaChunkTickSelection() {
++    private void tickOmegaChunkTickSelection() {
 +        if (this.worldData.getType() == WorldType.DEBUG_ALL_BLOCK_STATES) {
 +            Iterator<Chunk> chunkIterator = this.manager.getTickableChunks();
 +            while (chunkIterator.hasNext()) {

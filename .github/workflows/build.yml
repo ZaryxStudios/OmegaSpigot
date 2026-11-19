@@ -25,19 +25,19 @@ jobs:
           git config --global init.defaultBranch master
 
       - name: Setup build environment
-        run: ./panda setup
+        run: ./omega setup
 
       - name: Build
-        run: ./panda jar
+        run: ./omega jar
 
       - name: Copy Paperclip jar
         run: |
-          cp -v "./paperclip.jar" "./pandaspigot-$GITHUB_RUN_NUMBER.jar"
+          cp -v "./paperclip.jar" "./omegaspigot-$GITHUB_RUN_NUMBER.jar"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
           name: Server JAR
-          path: pandaspigot-${{ github.run_number }}.jar
+          path: omegaspigot-${{ github.run_number }}.jar
           archive: false
           if-no-files-found: error

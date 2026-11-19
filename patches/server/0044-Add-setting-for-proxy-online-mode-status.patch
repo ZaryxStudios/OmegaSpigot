@@ -13,7 +13,7 @@ index c48b1cca7ac3b61e1a81b02cdb1a5c8206de377f..11d42531ea1659ce8f932bd1b43fd58d
      public boolean completeFromCache() {
          MinecraftServer server = MinecraftServer.getServer();
 -        return completeFromCache(false, server.getOnlineMode() || SpigotConfig.bungee);
-+        return completeFromCache(false, com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().isProxyOnlineMode());
++        return completeFromCache(false, dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().isProxyOnlineMode());
      }
      
      public boolean completeFromCache(boolean onlineMode) {
@@ -22,15 +22,15 @@ index c48b1cca7ac3b61e1a81b02cdb1a5c8206de377f..11d42531ea1659ce8f932bd1b43fd58d
      public boolean complete(boolean textures) {
          MinecraftServer server = MinecraftServer.getServer();
 -        return complete(textures, server.getOnlineMode() || SpigotConfig.bungee);
-+        return complete(textures, com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().isProxyOnlineMode());
++        return complete(textures, dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().isProxyOnlineMode());
      }
      
      public boolean complete(boolean textures, boolean onlineMode) {
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
 index 4a3b170542d6266cb5868a925c6d3d081fc9598f..99367c42858cf97190a3b090f258b18e4aea3ac2 100644
---- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
-@@ -3,6 +3,8 @@ package com.hpfxd.pandaspigot.config;
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
+@@ -3,6 +3,8 @@ package dev.zaryxstudios.escanergang.omegaspigot.config;
  import com.google.common.base.Throwables;
  import com.hpfxd.configurate.eoyaml.EOYamlConfigurationLoader;
  import net.minecraft.server.World;
@@ -39,7 +39,7 @@ index 4a3b170542d6266cb5868a925c6d3d081fc9598f..99367c42858cf97190a3b090f258b18e
  import org.spongepowered.configurate.CommentedConfigurationNode;
  import org.spongepowered.configurate.ConfigurationNode;
  import org.spongepowered.configurate.objectmapping.ConfigSerializable;
-@@ -99,4 +101,12 @@ public class PandaSpigotConfig {
+@@ -99,4 +101,12 @@ public class OmegaSpigotConfig {
          "scoreboards to be tracked by the server. Instead, only track scoreboards when an\n" +
          "objective is added with a non-dummy criteria.")
      public boolean trackPluginScoreboards = false;
@@ -61,7 +61,7 @@ index 02213e3c5fee0a686654c563ae953f7f29a46d0e..210b9ad51d2aed44ef5e81667a5f68b7
          }), String.class);
  
 -        if (minecraftserver.getOnlineMode() || org.spigotmc.SpigotConfig.bungee) { // Spigot: bungee = online mode, for now.
-+        if (com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().isProxyOnlineMode()) { // Spigot: bungee = online mode, for now. // PandaSpigot - Handle via setting
++        if (dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().isProxyOnlineMode()) { // Spigot: bungee = online mode, for now. // PandaSpigot - Handle via setting
              minecraftserver.getGameProfileRepository().findProfilesByNames(astring, Agent.MINECRAFT, profilelookupcallback);
          } else {
              String[] astring1 = astring;
@@ -76,7 +76,7 @@ index 474f43eab7ceb63ab04e2ebbcdd9f73d7cb2f27d..d7dee8b3920b1803f751f3fa206fe035
 -        minecraftserver.getGameProfileRepository().findProfilesByNames(new String[] { s}, Agent.MINECRAFT, profilelookupcallback);
 -        if (!minecraftserver.getOnlineMode() && agameprofile[0] == null) {
 +        // PandaSpigot start - Handle via setting
-+        if (com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().isProxyOnlineMode()) {
++        if (dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().isProxyOnlineMode()) {
 +            minecraftserver.getGameProfileRepository().findProfilesByNames(new String[] { s}, Agent.MINECRAFT, profilelookupcallback);
 +        } else if (agameprofile[0] == null) {
 +        // PandaSpigot end
@@ -92,7 +92,7 @@ index 73530a14e0bf737745520226ef53ab4fa3637302..815cbd156d0ab21e185d1f4af47d5edc
              GameProfile profile = null;
              // Only fetch an online UUID in online mode
 -            if ( MinecraftServer.getServer().getOnlineMode() || org.spigotmc.SpigotConfig.bungee )
-+            if ( com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().isProxyOnlineMode() ) // PandaSpigot - Handle via setting
++            if ( dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().isProxyOnlineMode() ) // PandaSpigot - Handle via setting
              {
                  profile = MinecraftServer.getServer().getUserCache().getProfile( name );
              }

@@ -4,11 +4,11 @@ Date: Wed, 3 Nov 2021 18:01:06 -0400
 Subject: [PATCH] Configurable entity AI
 
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
 index 775c3d71c863361d5ba58395c5289bb170ec2fa3..ae63f6948dc9b7058389ab26c0f43302c5d4fc81 100644
---- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-@@ -35,4 +35,8 @@ public class PandaSpigotWorldConfig {
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
+@@ -35,4 +35,8 @@ public class OmegaSpigotWorldConfig {
  
      @Comment("When enabled, this option will disable saving world chunks.")
      public boolean disableChunkSaving = false;
@@ -26,7 +26,7 @@ index b82b98473f516e5963fed51ba892bfa59a80c2f5..c1f100c3bd68329b77f9a899cc735337
          this.world.methodProfiler.b();
          // Spigot Start
 -        if ( this.fromMobSpawner )
-+        if ( this.world.pandaSpigotConfig.disableEntityAi || this.fromMobSpawner ) // PandaSpigot - configurable entity AI
++        if ( this.world.omegaSpigotConfig.disableEntityAi || this.fromMobSpawner ) // PandaSpigot - configurable entity AI
          {
              // PaperSpigot start - Allow nerfed mobs to jump
              if (goalFloat != null) {

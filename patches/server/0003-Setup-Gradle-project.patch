@@ -11,7 +11,7 @@ index 0000000000000000000000000000000000000000..fcd4026f3f2d3fdebae6b180115a67f1
 +++ b/build.gradle.kts
 @@ -0,0 +1,144 @@
 +plugins {
-+    id("pandaspigot.conventions")
++    id("omegaspigot.conventions")
 +    id("com.gradleup.shadow") version "9.6.1"
 +}
 +
@@ -22,7 +22,7 @@ index 0000000000000000000000000000000000000000..fcd4026f3f2d3fdebae6b180115a67f1
 +}
 +
 +dependencies {
-+    implementation(project(":pandaspigot-api"))
++    implementation(project(":omegaspigot-api"))
 +
 +    // Minecraft libraries:
 +    implementation("com.mojang:netty:1.7.7")
@@ -49,7 +49,7 @@ index 0000000000000000000000000000000000000000..fcd4026f3f2d3fdebae6b180115a67f1
 +fun TaskContainer.registerRunTask(
 +    name: String, block: JavaExec.() -> Unit
 +): TaskProvider<JavaExec> = register<JavaExec>(name) {
-+    group = "pandaspigot"
++    group = "omegaspigot"
 +    standardInput = System.`in`
 +    workingDir = rootProject.layout.projectDirectory.dir(
 +        providers.gradleProperty("runWorkDir").orElse("run")
@@ -112,7 +112,7 @@ index 0000000000000000000000000000000000000000..fcd4026f3f2d3fdebae6b180115a67f1
 +            attributes(
 +                "Main-Class" to "org.bukkit.craftbukkit.Main",
 +                "Implementation-Title" to "CraftBukkit",
-+                "Implementation-Version" to "git-PandaSpigot-$implementationVersion",
++                "Implementation-Version" to "git-OmegaSpigot-$implementationVersion",
 +                "Implementation-Vendor" to date,
 +                "Specification-Title" to "Bukkit",
 +                "Specification-Version" to project.version,

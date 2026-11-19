@@ -5,13 +5,13 @@ Subject: [PATCH] Add packet limiter config
 
 Packet limiter implementation taken from Spottedleaf's patch in Paper.
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PacketLimiterConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PacketLimiterConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/PacketLimiterConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/PacketLimiterConfig.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..24d213655f038129e25bd75ce876ba68ed43105c
 --- /dev/null
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PacketLimiterConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/PacketLimiterConfig.java
 @@ -0,0 +1,132 @@
-+package com.hpfxd.pandaspigot.config;
++package dev.zaryxstudios.escanergang.omegaspigot.config;
 +
 +import net.minecraft.server.Packet;
 +import org.bukkit.Bukkit;
@@ -93,12 +93,12 @@ index 0000000000000000000000000000000000000000..24d213655f038129e25bd75ce876ba68
 +                    try {
 +                        clazz = Class.forName("net.minecraft.server." + key);
 +                    } catch (ClassNotFoundException e) {
-+                        Bukkit.getLogger().warning("Packet '" + key + "' does not exist, cannot limit it! Please update pandaspigot.yml");
++                        Bukkit.getLogger().warning("Packet '" + key + "' does not exist, cannot limit it! Please update omegaspigot.yml");
 +                        continue;
 +                    }
 +
 +                    if (!Packet.class.isAssignableFrom(clazz)) {
-+                        Bukkit.getLogger().warning("Class '" + key + "' is not a packet, cannot limit it! Please update pandaspigot.yml");
++                        Bukkit.getLogger().warning("Class '" + key + "' is not a packet, cannot limit it! Please update omegaspigot.yml");
 +                        continue;
 +                    }
 +
@@ -143,12 +143,12 @@ index 0000000000000000000000000000000000000000..24d213655f038129e25bd75ce876ba68
 +        }
 +    }
 +}
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
 index 7db0c0097bcb38e4e49ab12879c230770e47334d..fcf7738c75f21ad23693d903b476c65b4a207a84 100644
---- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
-@@ -38,7 +38,8 @@ public class PandaSpigotConfig {
-                         .header("This is the configuration file for PandaSpigot.\n" +
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
+@@ -38,7 +38,8 @@ public class OmegaSpigotConfig {
+                         .header("This is the configuration file for OmegaSpigot.\n" +
                                  "Use caution when modifying settings, as some may impact gameplay in non-obvious ways.")
                          .mapFactory(MapFactories.insertionOrdered())
 -                        .serializers(build -> build.registerAnnotatedObjects(ObjectMapper.factoryBuilder()
@@ -157,7 +157,7 @@ index 7db0c0097bcb38e4e49ab12879c230770e47334d..fcf7738c75f21ad23693d903b476c65b
                                  .defaultNamingScheme(NamingSchemes.CAMEL_CASE)
                                  .build())))
                  .build();
-@@ -113,4 +114,9 @@ public class PandaSpigotConfig {
+@@ -113,4 +114,9 @@ public class OmegaSpigotConfig {
      public int maxBookPageSize = 2560;
  
      public double maxBookTotalSizeMultiplier = 0.98d;
@@ -167,13 +167,13 @@ index 7db0c0097bcb38e4e49ab12879c230770e47334d..fcf7738c75f21ad23693d903b476c65b
 +        "(note that \"max-packet-rate\" is renamed to \"maxPacketRate\")")
 +    public PacketLimiterConfig packetLimiter = PacketLimiterConfig.createDefault();
  }
-diff --git a/src/main/java/com/hpfxd/pandaspigot/util/IntervalledCounter.java b/src/main/java/com/hpfxd/pandaspigot/util/IntervalledCounter.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/util/IntervalledCounter.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/util/IntervalledCounter.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..d61d44e8e1126ed3bea6e633cc0bdebb0a148828
 --- /dev/null
-+++ b/src/main/java/com/hpfxd/pandaspigot/util/IntervalledCounter.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/util/IntervalledCounter.java
 @@ -0,0 +1,116 @@
-+package com.hpfxd.pandaspigot.util;
++package dev.zaryxstudios.escanergang.omegaspigot.util;
 +
 +// Originally from PaperMC
 +public final class IntervalledCounter {
@@ -299,13 +299,13 @@ index a9e86cdaeb6924adf2886a4804d51a32cd99f13c..b6fc419a5a5503fd6548ab0033994553
  
 +    // PandaSpigot start - packet limiter
 +    protected final Object PACKET_LIMIT_LOCK = new Object();
-+    protected final com.hpfxd.pandaspigot.util.IntervalledCounter allPacketCounts = com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().packetLimiter.getAllPacketsLimit() != null ? new com.hpfxd.pandaspigot.util.IntervalledCounter(
-+        (long) (com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().packetLimiter.getAllPacketsLimit().packetLimitInterval * 1.0e9)
++    protected final dev.zaryxstudios.escanergang.omegaspigot.util.IntervalledCounter allPacketCounts = dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().packetLimiter.getAllPacketsLimit() != null ? new dev.zaryxstudios.escanergang.omegaspigot.util.IntervalledCounter(
++        (long) (dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().packetLimiter.getAllPacketsLimit().packetLimitInterval * 1.0e9)
 +    ) : null;
-+    protected final java.util.Map<Class<? extends Packet<?>>, com.hpfxd.pandaspigot.util.IntervalledCounter> packetSpecificLimits = new java.util.HashMap<>();
++    protected final java.util.Map<Class<? extends Packet<?>>, dev.zaryxstudios.escanergang.omegaspigot.util.IntervalledCounter> packetSpecificLimits = new java.util.HashMap<>();
 +    private boolean stopReadingPackets;
 +    private void killForPacketSpam() {
-+        IChatBaseComponent[] reason = org.bukkit.craftbukkit.util.CraftChatMessage.fromString(org.bukkit.ChatColor.translateAlternateColorCodes('&', com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().packetLimiter.getKickMessage()));
++        IChatBaseComponent[] reason = org.bukkit.craftbukkit.util.CraftChatMessage.fromString(org.bukkit.ChatColor.translateAlternateColorCodes('&', dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().packetLimiter.getKickMessage()));
 +        this.a(new PacketPlayOutKickDisconnect(reason[0]), future -> {
 +            this.close(reason[0]);
 +            this.k();
@@ -326,24 +326,24 @@ index a9e86cdaeb6924adf2886a4804d51a32cd99f13c..b6fc419a5a5503fd6548ab0033994553
 +                return;
 +            }
 +            if (this.allPacketCounts != null ||
-+                com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().packetLimiter.getPacketSpecificLimits().containsKey(packet.getClass())) {
++                dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().packetLimiter.getPacketSpecificLimits().containsKey(packet.getClass())) {
 +                long time = System.nanoTime();
 +                synchronized (PACKET_LIMIT_LOCK) {
 +                    if (this.allPacketCounts != null) {
 +                        this.allPacketCounts.updateAndAdd(1, time);
-+                        if (this.allPacketCounts.getRate() >= com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().packetLimiter.getAllPacketsLimit().maxPacketRate) {
++                        if (this.allPacketCounts.getRate() >= dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().packetLimiter.getAllPacketsLimit().maxPacketRate) {
 +                            this.killForPacketSpam();
 +                            return;
 +                        }
 +                    }
 +
 +                    for (Class<?> check = packet.getClass(); check != Object.class; check = check.getSuperclass()) {
-+                        com.hpfxd.pandaspigot.config.PacketLimiterConfig.PacketLimit packetSpecificLimit = com.hpfxd.pandaspigot.config.PandaSpigotConfig.get().packetLimiter.getPacketSpecificLimits().get(check);
++                        dev.zaryxstudios.escanergang.omegaspigot.config.PacketLimiterConfig.PacketLimit packetSpecificLimit = dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig.get().packetLimiter.getPacketSpecificLimits().get(check);
 +                        if (packetSpecificLimit == null) {
 +                            continue;
 +                        }
-+                        com.hpfxd.pandaspigot.util.IntervalledCounter counter = this.packetSpecificLimits.computeIfAbsent((Class) check, clazz -> {
-+                            return new com.hpfxd.pandaspigot.util.IntervalledCounter((long) (packetSpecificLimit.packetLimitInterval * 1.0e9));
++                        dev.zaryxstudios.escanergang.omegaspigot.util.IntervalledCounter counter = this.packetSpecificLimits.computeIfAbsent((Class) check, clazz -> {
++                            return new dev.zaryxstudios.escanergang.omegaspigot.util.IntervalledCounter((long) (packetSpecificLimit.packetLimitInterval * 1.0e9));
 +                        });
 +                        counter.updateAndAdd(1, time);
 +                        if (counter.getRate() >= packetSpecificLimit.maxPacketRate) {

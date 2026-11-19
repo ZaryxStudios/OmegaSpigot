@@ -80,13 +80,13 @@ index 0e00409e1ee6eecfbafb5f33e3918b7401d32d1c..02794bec9b24fa0f98bf4d1508890073
      }
  
      named("build") {
-diff --git a/src/main/java/com/hpfxd/pandaspigot/console/PandaConsole.java b/src/main/java/com/hpfxd/pandaspigot/console/PandaConsole.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/console/OmegaConsole.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/console/OmegaConsole.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..25a515b681bbbb70946f2ec73647a6f184f81b3c
 --- /dev/null
-+++ b/src/main/java/com/hpfxd/pandaspigot/console/PandaConsole.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/console/OmegaConsole.java
 @@ -0,0 +1,39 @@
-+package com.hpfxd.pandaspigot.console;
++package dev.zaryxstudios.escanergang.omegaspigot.console;
 +
 +import net.minecraft.server.DedicatedServer;
 +import net.minecrell.terminalconsole.SimpleTerminalConsole;
@@ -95,10 +95,10 @@ index 0000000000000000000000000000000000000000..25a515b681bbbb70946f2ec73647a6f1
 +
 +import java.nio.file.Paths;
 +
-+public class PandaConsole extends SimpleTerminalConsole {
++public class OmegaConsole extends SimpleTerminalConsole {
 +    private final DedicatedServer server;
 +    
-+    public PandaConsole(DedicatedServer server) {
++    public OmegaConsole(DedicatedServer server) {
 +        this.server = server;
 +    }
 +    
@@ -120,24 +120,24 @@ index 0000000000000000000000000000000000000000..25a515b681bbbb70946f2ec73647a6f1
 +    @Override
 +    protected LineReader buildReader(LineReaderBuilder builder) {
 +        return super.buildReader(builder
-+            .appName("PandaSpigot")
++            .appName("OmegaSpigot")
 +            .variable(LineReader.HISTORY_FILE, Paths.get(".console_history"))
-+            .completer(new PandaConsoleCompleter(this.server)));
++            .completer(new OmegaConsoleCompleter(this.server)));
 +    }
 +}
-diff --git a/src/main/java/com/hpfxd/pandaspigot/console/PandaConsoleCommandSender.java b/src/main/java/com/hpfxd/pandaspigot/console/PandaConsoleCommandSender.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/console/OmegaConsoleCommandSender.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/console/OmegaConsoleCommandSender.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..88a52389fef0d36925085296faccebfd851706b2
 --- /dev/null
-+++ b/src/main/java/com/hpfxd/pandaspigot/console/PandaConsoleCommandSender.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/console/OmegaConsoleCommandSender.java
 @@ -0,0 +1,15 @@
-+package com.hpfxd.pandaspigot.console;
++package dev.zaryxstudios.escanergang.omegaspigot.console;
 +
 +import org.apache.logging.log4j.LogManager;
 +import org.apache.logging.log4j.Logger;
 +import org.bukkit.craftbukkit.command.CraftConsoleCommandSender;
 +
-+public class PandaConsoleCommandSender extends CraftConsoleCommandSender {
++public class OmegaConsoleCommandSender extends CraftConsoleCommandSender {
 +    private static final Logger LOGGER = LogManager.getRootLogger();
 +    
 +    @Override
@@ -146,13 +146,13 @@ index 0000000000000000000000000000000000000000..88a52389fef0d36925085296faccebfd
 +        LOGGER.info(message);
 +    }
 +}
-diff --git a/src/main/java/com/hpfxd/pandaspigot/console/PandaConsoleCompleter.java b/src/main/java/com/hpfxd/pandaspigot/console/PandaConsoleCompleter.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/console/OmegaConsoleCompleter.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/console/OmegaConsoleCompleter.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..1aa335eca007be52e9813ce933d271eac9b1fdce
 --- /dev/null
-+++ b/src/main/java/com/hpfxd/pandaspigot/console/PandaConsoleCompleter.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/console/OmegaConsoleCompleter.java
 @@ -0,0 +1,56 @@
-+package com.hpfxd.pandaspigot.console;
++package dev.zaryxstudios.escanergang.omegaspigot.console;
 +
 +import net.minecraft.server.DedicatedServer;
 +import org.bukkit.craftbukkit.CraftServer;
@@ -166,10 +166,10 @@ index 0000000000000000000000000000000000000000..1aa335eca007be52e9813ce933d271ea
 +import java.util.concurrent.ExecutionException;
 +import java.util.logging.Level;
 +
-+public class PandaConsoleCompleter implements Completer {
++public class OmegaConsoleCompleter implements Completer {
 +    private final DedicatedServer server;
 +    
-+    public PandaConsoleCompleter(DedicatedServer server) {
++    public OmegaConsoleCompleter(DedicatedServer server) {
 +        this.server = server;
 +    }
 +    
@@ -202,7 +202,7 @@ index 0000000000000000000000000000000000000000..1aa335eca007be52e9813ce933d271ea
 +    
 +        @Override
 +        protected List<String> evaluate() {
-+            final CraftServer server = PandaConsoleCompleter.this.server.server;
++            final CraftServer server = OmegaConsoleCompleter.this.server.server;
 +            
 +            return server.getCommandMap().tabComplete(server.getConsoleSender(), this.buffer);
 +        }
@@ -217,7 +217,7 @@ index 97699e7f86cef3ab8c4560066f0ef93c18a8f5ad..9bcfa3d9f26f88e704903d90695ab88b
                  // CraftBukkit end
  
 +                // PandaSpigot start - Use TerminalConsoleAppender
-+                new com.hpfxd.pandaspigot.console.PandaConsole(DedicatedServer.this).start();
++                new dev.zaryxstudios.escanergang.omegaspigot.console.OmegaConsole(DedicatedServer.this).start();
 +                /*
                  jline.console.ConsoleReader bufferedreader = reader; // CraftBukkit
                  String s;
@@ -319,7 +319,7 @@ index 3c2d3197faa7e5212f7c6f9970e56426ae02ade7..c8fb991f1a9c88d4f519ae8129210853
          this.cserver = minecraftserver.server = new CraftServer(minecraftserver, this);
 -        minecraftserver.console = org.bukkit.craftbukkit.command.ColouredConsoleSender.getInstance();
 -        minecraftserver.reader.addCompleter(new org.bukkit.craftbukkit.command.ConsoleCommandCompleter(minecraftserver.server));
-+        minecraftserver.console = new com.hpfxd.pandaspigot.console.PandaConsoleCommandSender(); // PandaSpigot
++        minecraftserver.console = new dev.zaryxstudios.escanergang.omegaspigot.console.OmegaConsoleCommandSender(); // PandaSpigot
          // CraftBukkit end
          
          this.k = new GameProfileBanList(PlayerList.a);

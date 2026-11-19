@@ -107,16 +107,16 @@ if [ "$2" == "--setup" ]; then
 fi
 
 if [ ! -d "base/Paper/PaperSpigot-Server" ]; then
-    echo "Upstream directory does not exist. Did you forget to run 'panda setup'?"
+    echo "Upstream directory does not exist. Did you forget to run 'omega setup'?"
     exit 1
 else
-    # Apply PandaSpigot
+    # Apply OmegaSpigot
     (
-        applyPatch "base/Paper/PaperSpigot-API" PandaSpigot-API HEAD patches/api &&
-        applyPatch "base/Paper/PaperSpigot-Server" PandaSpigot-Server HEAD patches/server
+        applyPatch "base/Paper/PaperSpigot-API" OmegaSpigot-API HEAD patches/api &&
+        applyPatch "base/Paper/PaperSpigot-Server" OmegaSpigot-Server HEAD patches/server
         cd "$basedir"
     ) || (
-        echo "Failed to apply PandaSpigot Patches"
+        echo "Failed to apply OmegaSpigot Patches"
         exit 1
     ) || exit 1
 fi

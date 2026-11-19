@@ -7,11 +7,11 @@ Skip calculating what blocks to blow up in water/liquid.
 This is configurable using the "tnt.optimize-movement" and
 "tnt.optimize-liquid-explosions" options respectively.
 
-diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
 index 552ee2cc025bcee5e1c394e6b8be455dc3335fda..d27991b5a1da44ccac9afcbe0c28e02bc75afc56 100644
---- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-+++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotWorldConfig.java
-@@ -43,4 +43,8 @@ public class PandaSpigotWorldConfig {
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
+@@ -43,4 +43,8 @@ public class OmegaSpigotWorldConfig {
      @Comment("This option controls whether or not to add a bit of randomness to an arrow's trajectory.\n" +
              "By default, this is true (vanilla behaviour)")
      public boolean randomArrowTrajectory = true;
@@ -34,7 +34,7 @@ index 854cf888d64e50bfd85420bb5dcc93860a64f132..b0aee5e189d70e2f68c3c95a64064679
 +            double xLength = totalArea.d - totalArea.a;
 +            double yLength = totalArea.e - totalArea.b;
 +            double zLength = totalArea.f - totalArea.c;
-+            boolean axisScan = this.world.pandaSpigotConfig.optimizeTntMovement && xLength * yLength * zLength > 10;
++            boolean axisScan = this.world.omegaSpigotConfig.optimizeTntMovement && xLength * yLength * zLength > 10;
 +
 +            List list = this.world.getCubes(this, axisScan ? this.getBoundingBox().a(0, d1, 0) : totalArea);
 +            // PandaSpigot end
@@ -70,7 +70,7 @@ index b7d410eeb974eee7b26dce8e3b02ff2051e74f93..6671d4920f4b808d61fd458ef3f26f21
  
 +        Block block = world.getChunkAt((int) posX >> 4, (int) posZ >> 4).getBlockData(new BlockPosition(posX, posY, posZ)).getBlock(); // PandaSpigot - get block of the explosion
 +
-+        if (!this.world.pandaSpigotConfig.optimizeLiquidExplosions || !block.getMaterial().isLiquid()) { // PandaSpigot - skip calculating what blocks to blow up in water/lava
++        if (!this.world.omegaSpigotConfig.optimizeLiquidExplosions || !block.getMaterial().isLiquid()) { // PandaSpigot - skip calculating what blocks to blow up in water/lava
          for (int k = 0; k < 16; ++k) {
              for (i = 0; i < 16; ++i) {
                  for (j = 0; j < 16; ++j) {
