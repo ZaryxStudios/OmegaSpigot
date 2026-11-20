@@ -1,0 +1,126 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OmegaSpigot Contributors <studio@zaryxstudios.dev>
+Date: Thu, 19 Nov 2026 12:00:00 +0000
+Subject: [PATCH] Add world generation control API
+
+Adds the dev.zaryxstudios.escanergang.omegaspigot.worldgen API used to enable or disable biomes, structures and block types during world generation.
+---
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/OmegaWorldGen.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/OmegaWorldGen.java
+new file mode 100644
+index 00000000..5e8fbb1e
+--- /dev/null
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/OmegaWorldGen.java
+@@ -0,0 +1,35 @@
++package dev.zaryxstudios.escanergang.omegaspigot.worldgen;
++
++/**
++ * Entry point for the OmegaSpigot world generation API.
++ * <pre>
++ * WorldGenController gen = OmegaWorldGen.getController();
++ * gen.setBiomeEnabled(world, Biome.JUNGLE, false);
++ * gen.save();
++ * </pre>
++ */
++public final class OmegaWorldGen {
++    private static volatile WorldGenController controller;
++
++    private OmegaWorldGen() {
++    }
++
++    /**
++     * @return the active world generation controller.
++     * @throws IllegalStateException if the server has not finished starting up.
++     */
++    public static WorldGenController getController() {
++        WorldGenController current = controller;
++        if (current == null) {
++            throw new IllegalStateException("OmegaSpigot world generation controller is not available yet");
++        }
++        return current;
++    }
++
++    /**
++     * Internal: called by the server to register its controller implementation.
++     */
++    public static void setController(WorldGenController newController) {
++        controller = newController;
++    }
++}
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/WorldGenController.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/WorldGenController.java
+new file mode 100644
+index 00000000..2b60b0ae
+--- /dev/null
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/WorldGenController.java
+@@ -0,0 +1,43 @@
++package dev.zaryxstudios.escanergang.omegaspigot.worldgen;
++
++import org.bukkit.Material;
++import org.bukkit.World;
++import org.bukkit.block.Biome;
++
++/**
++ * Controls which biomes, structures and block types are generated in a world.
++ * <p>
++ * Changes apply to chunks generated after the change. Changes made through the setters are kept in
++ * memory until {@link #save()} is called, which writes them to the OmegaSpigot configuration file.
++ */
++public interface WorldGenController {
++
++    /** @return {@code true} if the biome may be generated in the world. */
++    boolean isBiomeEnabled(World world, Biome biome);
++
++    /**
++     * Enables or disables a biome. Disabled biomes are replaced by {@link #getFallbackBiome(World)}.
++     */
++    void setBiomeEnabled(World world, Biome biome, boolean enabled);
++
++    /** @return {@code true} if the block type may be placed by world generation (ores, trees, lakes, ...). */
++    boolean isBlockEnabled(World world, Material material);
++
++    /** Enables or disables placing a block type during world generation. Terrain base blocks are not affected. */
++    void setBlockEnabled(World world, Material material, boolean enabled);
++
++    /** @return {@code true} if the structure may be generated in the world. */
++    boolean isStructureEnabled(World world, WorldGenStructure structure);
++
++    /** Enables or disables a structure type. */
++    void setStructureEnabled(World world, WorldGenStructure structure, boolean enabled);
++
++    /** @return the biome used in place of disabled biomes in the world. */
++    Biome getFallbackBiome(World world);
++
++    /** Sets the biome used in place of disabled biomes in the world. */
++    void setFallbackBiome(World world, Biome biome);
++
++    /** Writes all in-memory changes to the OmegaSpigot configuration file. */
++    void save();
++}
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/WorldGenStructure.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/WorldGenStructure.java
+new file mode 100644
+index 00000000..696caf79
+--- /dev/null
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/WorldGenStructure.java
+@@ -0,0 +1,23 @@
++package dev.zaryxstudios.escanergang.omegaspigot.worldgen;
++
++/**
++ * Structures and large features that OmegaSpigot can disable during world generation.
++ */
++public enum WorldGenStructure {
++    /** Cave systems carved into the terrain. */
++    CAVES,
++    /** Ravines / canyons. */
++    CANYON,
++    /** Abandoned mineshafts. */
++    MINESHAFT,
++    /** Villages. */
++    VILLAGE,
++    /** Strongholds (end portal rooms). */
++    STRONGHOLD,
++    /** Desert, jungle and witch-hut temples. */
++    TEMPLE,
++    /** Ocean monuments. */
++    MONUMENT,
++    /** Dungeon rooms (mob spawners with chests). */
++    DUNGEON
++}

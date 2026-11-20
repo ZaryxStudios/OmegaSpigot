@@ -1,0 +1,574 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OmegaSpigot Contributors <studio@zaryxstudios.dev>
+Date: Thu, 19 Nov 2026 12:00:00 +0000
+Subject: [PATCH] World generation control
+
+Adds per-world control of biomes, structures and block types generated in HCF maps (worldGeneration section in omegaspigot.yml) and the OmegaWorldGen API implementation.
+---
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
+index 317386288..63e0795ba 100644
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
+@@ -2,6 +2,8 @@ package dev.zaryxstudios.escanergang.omegaspigot.config;
+ 
+ import com.google.common.base.Throwables;
+ import com.hpfxd.configurate.eoyaml.EOYamlConfigurationLoader;
++import dev.zaryxstudios.escanergang.omegaspigot.worldgen.OmegaWorldGen;
++import dev.zaryxstudios.escanergang.omegaspigot.worldgen.OmegaWorldGenController;
+ import net.minecraft.server.World;
+ import org.bukkit.Bukkit;
+ import org.spigotmc.SpigotConfig;
+@@ -10,6 +12,7 @@ import org.spongepowered.configurate.ConfigurationNode;
+ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+ import org.spongepowered.configurate.objectmapping.ObjectMapper;
+ import org.spongepowered.configurate.objectmapping.meta.Comment;
++import org.spongepowered.configurate.serialize.SerializationException;
+ import org.spongepowered.configurate.util.MapFactories;
+ import org.spongepowered.configurate.util.NamingSchemes;
+ 
+@@ -23,6 +26,10 @@ public class OmegaSpigotConfig {
+     private static OmegaSpigotConfig config;
+     private static OmegaSpigotWorldConfig defaultWorldConfig;
+     private static final Map<String, OmegaSpigotWorldConfig> worldConfigs = new HashMap<>();
++    // OmegaSpigot start - Keep loader and root node for saving
++    private static CommentedConfigurationNode rootNode;
++    private static EOYamlConfigurationLoader configLoader;
++    // OmegaSpigot end
+     
+     /**
+      * Initialize the configuration, and load it from a file.
+@@ -46,6 +53,10 @@ public class OmegaSpigotConfig {
+         
+         try {
+             CommentedConfigurationNode root = loader.load();
++            // OmegaSpigot start - Keep loader and root node for saving
++            rootNode = root;
++            configLoader = loader;
++            // OmegaSpigot end
+             config = root.get(OmegaSpigotConfig.class);
+             
+             // worlds
+@@ -65,6 +76,9 @@ public class OmegaSpigotConfig {
+             
+             // call after save
+             initWorlds(worldsNode);
++            // OmegaSpigot start - Register world generation API controller
++            OmegaWorldGen.setController(OmegaWorldGenController.INSTANCE);
++            // OmegaSpigot end
+         } catch (Exception e) {
+             throw Throwables.propagate(e);
+         }
+@@ -87,6 +101,34 @@ public class OmegaSpigotConfig {
+         return worldConfigs.getOrDefault(worldName, defaultWorldConfig);
+     }
+     
++    // OmegaSpigot start - Runtime world config creation and saving
++    public static OmegaSpigotWorldConfig getOrCreateWorldConfig(String worldName) {
++        OmegaSpigotWorldConfig worldConfig = worldConfigs.get(worldName);
++        if (worldConfig == null) {
++            try {
++                CommentedConfigurationNode node = rootNode.node("worlds", worldName);
++                node.set(defaultWorldConfig);
++                worldConfig = node.get(OmegaSpigotWorldConfig.class);
++            } catch (SerializationException e) {
++                throw Throwables.propagate(e);
++            }
++            worldConfigs.put(worldName, worldConfig);
++        }
++        return worldConfig;
++    }
++
++    public static void saveWorldConfigs() {
++        try {
++            for (Map.Entry<String, OmegaSpigotWorldConfig> entry : worldConfigs.entrySet()) {
++                rootNode.node("worlds", entry.getKey()).set(entry.getValue());
++            }
++            configLoader.save(rootNode);
++        } catch (Exception e) {
++            throw Throwables.propagate(e);
++        }
++    }
++    // OmegaSpigot end
++
+     public static OmegaSpigotWorldConfig getWorldConfig(World world) {
+         return getWorldConfig(world.worldData.getName());
+     }
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
+index 9467167fb..5d3e0981a 100644
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
+@@ -1,5 +1,8 @@
+ package dev.zaryxstudios.escanergang.omegaspigot.config;
+ 
++import java.util.ArrayList;
++import java.util.List;
++
+ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+ import org.spongepowered.configurate.objectmapping.meta.Comment;
+ 
+@@ -64,4 +67,28 @@ public class OmegaSpigotWorldConfig {
+             "behaviour while still providing performance optimizations.\n" +
+             "Default: false")
+     public boolean useSpigotChunkTickingSelection = false;
++
++    // OmegaSpigot start - World generation settings per world
++    @Comment("World generation control for HCF maps. Changes made through the OmegaSpigot API\n" +
++            "apply to chunks generated after the change.")
++    public WorldGenerationConfig worldGeneration = new WorldGenerationConfig();
++
++    @ConfigSerializable
++    public static class WorldGenerationConfig {
++        @Comment("Biomes that will not generate (names of org.bukkit.block.Biome, e.g. DESERT).\n" +
++                "Disabled biomes are replaced by fallback-biome.")
++        public List<String> disabledBiomes = new ArrayList<>();
++
++        @Comment("Block types (Material names, e.g. IRON_ORE) that will not be placed by world\n" +
++                "generation: ores, trees, lakes, flowers, dungeons, and so on.")
++        public List<String> disabledBlocks = new ArrayList<>();
++
++        @Comment("Structures that will not generate. Values: CAVES, CANYON, MINESHAFT, VILLAGE,\n" +
++                "STRONGHOLD, TEMPLE, MONUMENT, DUNGEON.")
++        public List<String> disabledStructures = new ArrayList<>();
++
++        @Comment("Biome used in place of disabled biomes.")
++        public String fallbackBiome = "PLAINS";
++    }
++    // OmegaSpigot end
+ }
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/OmegaWorldGenController.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/OmegaWorldGenController.java
+new file mode 100644
+index 000000000..5fff50d91
+--- /dev/null
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/OmegaWorldGenController.java
+@@ -0,0 +1,196 @@
++package dev.zaryxstudios.escanergang.omegaspigot.worldgen;
++
++import dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig;
++import dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotWorldConfig;
++import net.minecraft.server.BiomeBase;
++import net.minecraft.server.Block;
++import net.minecraft.server.Blocks;
++import org.bukkit.Material;
++import org.bukkit.World;
++import org.bukkit.block.Biome;
++import org.bukkit.craftbukkit.block.CraftBlock;
++import org.bukkit.craftbukkit.util.CraftMagicNumbers;
++
++import java.util.List;
++import java.util.Map;
++import java.util.concurrent.ConcurrentHashMap;
++import java.util.logging.Level;
++import java.util.logging.Logger;
++
++public final class OmegaWorldGenController implements WorldGenController {
++
++    public static final OmegaWorldGenController INSTANCE = new OmegaWorldGenController();
++
++    private static final Logger LOGGER = Logger.getLogger("OmegaSpigot");
++    private static final int MAX_BLOCK_IDS = 4096;
++    private static final Map<String, Compiled> CACHE = new ConcurrentHashMap<>();
++
++    private static final class Compiled {
++        final OmegaSpigotWorldConfig source;
++        final boolean[] disabledBiomeIds = new boolean[256];
++        final boolean[] disabledBlockIds = new boolean[MAX_BLOCK_IDS];
++        final boolean[] disabledStructures = new boolean[WorldGenStructure.values().length];
++        boolean anyBiomeDisabled;
++        boolean anyBlockDisabled;
++        final Biome fallbackBiome;
++        final BiomeBase fallbackBase;
++
++        Compiled(OmegaSpigotWorldConfig source) {
++            this.source = source;
++            OmegaSpigotWorldConfig.WorldGenerationConfig gen = source.worldGeneration;
++
++            for (String name : gen.disabledBiomes) {
++                Biome biome = parse(Biome.class, name);
++                if (biome != null) {
++                    BiomeBase base = CraftBlock.biomeToBiomeBase(biome);
++                    if (base != null) {
++                        disabledBiomeIds[base.id] = true;
++                        anyBiomeDisabled = true;
++                    }
++                }
++            }
++            for (String name : gen.disabledBlocks) {
++                Material material = Material.getMaterial(name.trim().toUpperCase());
++                if (material != null) {
++                    int id = Block.getId(CraftMagicNumbers.getBlock(material));
++                    if (id >= 0 && id < MAX_BLOCK_IDS) {
++                        disabledBlockIds[id] = true;
++                        anyBlockDisabled = true;
++                    }
++                }
++            }
++            for (String name : gen.disabledStructures) {
++                WorldGenStructure structure = parse(WorldGenStructure.class, name);
++                if (structure != null) {
++                    disabledStructures[structure.ordinal()] = true;
++                }
++            }
++
++            Biome fallback = parse(Biome.class, gen.fallbackBiome);
++            this.fallbackBiome = fallback != null ? fallback : Biome.PLAINS;
++            this.fallbackBase = CraftBlock.biomeToBiomeBase(this.fallbackBiome);
++        }
++    }
++
++    private static <T extends Enum<T>> T parse(Class<T> type, String name) {
++        if (name == null) {
++            return null;
++        }
++        try {
++            return Enum.valueOf(type, name.trim().toUpperCase());
++        } catch (IllegalArgumentException e) {
++            LOGGER.log(Level.WARNING, "Unknown " + type.getSimpleName() + " in omegaspigot.yml: " + name);
++            return null;
++        }
++    }
++
++    private static Compiled compiled(String worldName) {
++        OmegaSpigotWorldConfig config = OmegaSpigotConfig.getWorldConfig(worldName);
++        Compiled compiled = CACHE.get(worldName);
++        if (compiled == null || compiled.source != config) {
++            compiled = new Compiled(config);
++            CACHE.put(worldName, compiled);
++        }
++        return compiled;
++    }
++
++    public static void filterBiomes(net.minecraft.server.World world, BiomeBase[] biomes, int length) {
++        Compiled compiled = compiled(world.worldData.getName());
++        if (!compiled.anyBiomeDisabled) {
++            return;
++        }
++        for (int i = 0; i < length && i < biomes.length; i++) {
++            BiomeBase biome = biomes[i];
++            if (biome != null && compiled.disabledBiomeIds[biome.id]) {
++                biomes[i] = compiled.fallbackBase;
++            }
++        }
++    }
++
++    public static BiomeBase filterBiome(net.minecraft.server.World world, BiomeBase biome) {
++        Compiled compiled = compiled(world.worldData.getName());
++        if (biome != null && compiled.anyBiomeDisabled && compiled.disabledBiomeIds[biome.id]) {
++            return compiled.fallbackBase;
++        }
++        return biome;
++    }
++
++    public static boolean allowsBlock(net.minecraft.server.World world, Block block) {
++        if (block == Blocks.AIR) {
++            return true;
++        }
++        Compiled compiled = compiled(world.worldData.getName());
++        if (!compiled.anyBlockDisabled) {
++            return true;
++        }
++        int id = Block.getId(block);
++        return id < 0 || id >= MAX_BLOCK_IDS || !compiled.disabledBlockIds[id];
++    }
++
++    public static boolean allowsStructure(net.minecraft.server.World world, WorldGenStructure structure) {
++        return !compiled(world.worldData.getName()).disabledStructures[structure.ordinal()];
++    }
++
++    @Override
++    public boolean isBiomeEnabled(World world, Biome biome) {
++        BiomeBase base = CraftBlock.biomeToBiomeBase(biome);
++        return base == null || !compiled(world.getName()).disabledBiomeIds[base.id];
++    }
++
++    @Override
++    public void setBiomeEnabled(World world, Biome biome, boolean enabled) {
++        updateList(world, settings -> settings.disabledBiomes, biome.name(), enabled);
++    }
++
++    @Override
++    public boolean isBlockEnabled(World world, Material material) {
++        int id = Block.getId(CraftMagicNumbers.getBlock(material));
++        return id < 0 || id >= MAX_BLOCK_IDS || !compiled(world.getName()).disabledBlockIds[id];
++    }
++
++    @Override
++    public void setBlockEnabled(World world, Material material, boolean enabled) {
++        updateList(world, settings -> settings.disabledBlocks, material.name(), enabled);
++    }
++
++    @Override
++    public boolean isStructureEnabled(World world, WorldGenStructure structure) {
++        return !compiled(world.getName()).disabledStructures[structure.ordinal()];
++    }
++
++    @Override
++    public void setStructureEnabled(World world, WorldGenStructure structure, boolean enabled) {
++        updateList(world, settings -> settings.disabledStructures, structure.name(), enabled);
++    }
++
++    @Override
++    public Biome getFallbackBiome(World world) {
++        return compiled(world.getName()).fallbackBiome;
++    }
++
++    @Override
++    public void setFallbackBiome(World world, Biome biome) {
++        OmegaSpigotWorldConfig config = OmegaSpigotConfig.getOrCreateWorldConfig(world.getName());
++        config.worldGeneration.fallbackBiome = biome.name();
++        CACHE.remove(world.getName());
++    }
++
++    @Override
++    public void save() {
++        OmegaSpigotConfig.saveWorldConfigs();
++    }
++
++    private interface ListSelector {
++        List<String> select(OmegaSpigotWorldConfig.WorldGenerationConfig settings);
++    }
++
++    private static void updateList(World world, ListSelector selector, String name, boolean enabled) {
++        OmegaSpigotWorldConfig config = OmegaSpigotConfig.getOrCreateWorldConfig(world.getName());
++        List<String> list = selector.select(config.worldGeneration);
++        list.removeIf(entry -> entry.equalsIgnoreCase(name));
++        if (!enabled) {
++            list.add(name);
++        }
++        CACHE.remove(world.getName());
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/ChunkProviderGenerate.java b/src/main/java/net/minecraft/server/ChunkProviderGenerate.java
+index ad464d32d..07680ecaa 100644
+--- a/src/main/java/net/minecraft/server/ChunkProviderGenerate.java
++++ b/src/main/java/net/minecraft/server/ChunkProviderGenerate.java
+@@ -2,6 +2,8 @@ package net.minecraft.server;
+ 
+ import java.util.List;
+ import java.util.Random;
++import dev.zaryxstudios.escanergang.omegaspigot.worldgen.OmegaWorldGenController;
++import dev.zaryxstudios.escanergang.omegaspigot.worldgen.WorldGenStructure;
+ 
+ public class ChunkProviderGenerate implements IChunkProvider {
+ 
+@@ -76,6 +78,9 @@ public class ChunkProviderGenerate implements IChunkProvider {
+ 
+     public void a(int i, int j, ChunkSnapshot chunksnapshot) {
+         this.B = this.m.getWorldChunkManager().getBiomes(this.B, i * 4 - 2, j * 4 - 2, 10, 10);
++        // OmegaSpigot start - Replace disabled biomes in generation area
++        OmegaWorldGenController.filterBiomes(this.m, this.B, 100);
++        // OmegaSpigot end
+         this.a(i * 4, 0, j * 4);
+ 
+         for (int k = 0; k < 4; ++k) {
+@@ -155,34 +160,51 @@ public class ChunkProviderGenerate implements IChunkProvider {
+ 
+         this.a(i, j, chunksnapshot);
+         this.B = this.m.getWorldChunkManager().getBiomeBlock(this.B, i * 16, j * 16, 16, 16);
++        // OmegaSpigot start - Replace disabled biomes in chunk biomes
++        OmegaWorldGenController.filterBiomes(this.m, this.B, 256);
++        // OmegaSpigot end
+         this.a(i, j, chunksnapshot, this.B);
+-        if (this.r.r && this.m.paperSpigotConfig.generateCaves) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.r && this.m.paperSpigotConfig.generateCaves && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.CAVES)) { // PaperSpigot
+             this.u.a(this, this.m, i, j, chunksnapshot);
+         }
++        // OmegaSpigot end
+ 
+-        if (this.r.z && this.m.paperSpigotConfig.generateCanyon) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.z && this.m.paperSpigotConfig.generateCanyon && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.CANYON)) { // PaperSpigot
+             this.z.a(this, this.m, i, j, chunksnapshot);
+         }
++        // OmegaSpigot end
+ 
+-        if (this.r.w && this.n && this.m.paperSpigotConfig.generateMineshaft) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.w && this.n && this.m.paperSpigotConfig.generateMineshaft && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.MINESHAFT)) { // PaperSpigot
+             this.x.a(this, this.m, i, j, chunksnapshot);
+         }
++        // OmegaSpigot end
+ 
+-        if (this.r.v && this.n && this.m.paperSpigotConfig.generateVillage) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.v && this.n && this.m.paperSpigotConfig.generateVillage && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.VILLAGE)) { // PaperSpigot
+             this.w.a(this, this.m, i, j, chunksnapshot);
+         }
++        // OmegaSpigot end
+ 
+-        if (this.r.u && this.n && this.m.paperSpigotConfig.generateStronghold) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.u && this.n && this.m.paperSpigotConfig.generateStronghold && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.STRONGHOLD)) { // PaperSpigot
+             this.v.a(this, this.m, i, j, chunksnapshot);
+         }
++        // OmegaSpigot end
+ 
+-        if (this.r.x && this.n && this.m.paperSpigotConfig.generateTemple) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.x && this.n && this.m.paperSpigotConfig.generateTemple && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.TEMPLE)) { // PaperSpigot
+             this.y.a(this, this.m, i, j, chunksnapshot);
+         }
++        // OmegaSpigot end
+ 
+-        if (this.r.y && this.n && this.m.paperSpigotConfig.generateMonument) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.y && this.n && this.m.paperSpigotConfig.generateMonument && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.MONUMENT)) { // PaperSpigot
+             this.A.a(this, this.m, i, j, chunksnapshot);
+         }
++        // OmegaSpigot end
+ 
+         Chunk chunk = new Chunk(this.m, chunksnapshot, i, j);
+         byte[] abyte = chunk.getBiomeIndex();
+@@ -306,10 +328,15 @@ public class ChunkProviderGenerate implements IChunkProvider {
+ 
+     public void getChunkAt(IChunkProvider ichunkprovider, int i, int j) {
+         BlockFalling.instaFall = true;
++        // OmegaSpigot start - Enable block filter during population
++        this.m.worldGenPopulating = true;
++        // OmegaSpigot end
+         int k = i * 16;
+         int l = j * 16;
+         BlockPosition blockposition = new BlockPosition(k, 0, l);
+-        BiomeBase biomebase = this.m.getBiome(blockposition.a(16, 0, 16));
++        // OmegaSpigot start - Replace disabled biome for population
++        BiomeBase biomebase = OmegaWorldGenController.filterBiome(this.m, this.m.getBiome(blockposition.a(16, 0, 16)));
++        // OmegaSpigot end
+ 
+         this.h.setSeed(this.m.getSeed());
+         long i1 = this.h.nextLong() / 2L * 2L + 1L;
+@@ -319,25 +346,35 @@ public class ChunkProviderGenerate implements IChunkProvider {
+         boolean flag = false;
+         ChunkCoordIntPair chunkcoordintpair = new ChunkCoordIntPair(i, j);
+ 
+-        if (this.r.w && this.n && this.m.paperSpigotConfig.generateMineshaft) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.w && this.n && this.m.paperSpigotConfig.generateMineshaft && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.MINESHAFT)) { // PaperSpigot
+             this.x.a(this.m, this.h, chunkcoordintpair);
+         }
++        // OmegaSpigot end
+ 
+-        if (this.r.v && this.n && this.m.paperSpigotConfig.generateVillage) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.v && this.n && this.m.paperSpigotConfig.generateVillage && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.VILLAGE)) { // PaperSpigot
+             flag = this.w.a(this.m, this.h, chunkcoordintpair);
+         }
++        // OmegaSpigot end
+ 
+-        if (this.r.u && this.n && this.m.paperSpigotConfig.generateStronghold) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.u && this.n && this.m.paperSpigotConfig.generateStronghold && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.STRONGHOLD)) { // PaperSpigot
+             this.v.a(this.m, this.h, chunkcoordintpair);
+         }
++        // OmegaSpigot end
+ 
+-        if (this.r.x && this.n && this.m.paperSpigotConfig.generateTemple) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.x && this.n && this.m.paperSpigotConfig.generateTemple && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.TEMPLE)) { // PaperSpigot
+             this.y.a(this.m, this.h, chunkcoordintpair);
+         }
++        // OmegaSpigot end
+ 
+-        if (this.r.y && this.n && this.m.paperSpigotConfig.generateMonument) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.y && this.n && this.m.paperSpigotConfig.generateMonument && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.MONUMENT)) { // PaperSpigot
+             this.A.a(this.m, this.h, chunkcoordintpair);
+         }
++        // OmegaSpigot end
+ 
+         int k1;
+         int l1;
+@@ -359,7 +396,8 @@ public class ChunkProviderGenerate implements IChunkProvider {
+             }
+         }
+ 
+-        if (this.r.s && this.m.paperSpigotConfig.generateDungeon) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.s && this.m.paperSpigotConfig.generateDungeon && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.DUNGEON)) { // PaperSpigot
+             for (k1 = 0; k1 < this.r.t; ++k1) {
+                 l1 = this.h.nextInt(16) + 8;
+                 i2 = this.h.nextInt(256);
+@@ -368,6 +406,7 @@ public class ChunkProviderGenerate implements IChunkProvider {
+                 (new WorldGenDungeons()).generate(this.m, this.h, blockposition.a(l1, i2, j2));
+             }
+         }
++        // OmegaSpigot end
+ 
+         biomebase.a(this.m, this.h, new BlockPosition(k, 0, l));
+         SpawnerCreature.a(this.m, biomebase, k + 8, l + 8, 16, 16, this.h);
+@@ -389,6 +428,9 @@ public class ChunkProviderGenerate implements IChunkProvider {
+         }
+ 
+         BlockFalling.instaFall = false;
++        // OmegaSpigot start - Disable block filter after population
++        this.m.worldGenPopulating = false;
++        // OmegaSpigot end
+     }
+ 
+     public boolean a(IChunkProvider ichunkprovider, Chunk chunk, int i, int j) {
+@@ -444,25 +486,35 @@ public class ChunkProviderGenerate implements IChunkProvider {
+     }
+ 
+     public void recreateStructures(Chunk chunk, int i, int j) {
+-        if (this.r.w && this.n && this.m.paperSpigotConfig.generateMineshaft) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.w && this.n && this.m.paperSpigotConfig.generateMineshaft && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.MINESHAFT)) { // PaperSpigot
+             this.x.a(this, this.m, i, j, (ChunkSnapshot) null);
+         }
++        // OmegaSpigot end
+ 
+-        if (this.r.v && this.n && this.m.paperSpigotConfig.generateVillage) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.v && this.n && this.m.paperSpigotConfig.generateVillage && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.VILLAGE)) { // PaperSpigot
+             this.w.a(this, this.m, i, j, (ChunkSnapshot) null);
+         }
++        // OmegaSpigot end
+ 
+-        if (this.r.u && this.n && this.m.paperSpigotConfig.generateStronghold) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.u && this.n && this.m.paperSpigotConfig.generateStronghold && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.STRONGHOLD)) { // PaperSpigot
+             this.v.a(this, this.m, i, j, (ChunkSnapshot) null);
+         }
++        // OmegaSpigot end
+ 
+-        if (this.r.x && this.n && this.m.paperSpigotConfig.generateTemple) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.x && this.n && this.m.paperSpigotConfig.generateTemple && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.TEMPLE)) { // PaperSpigot
+             this.y.a(this, this.m, i, j, (ChunkSnapshot) null);
+         }
++        // OmegaSpigot end
+ 
+-        if (this.r.y && this.n && this.m.paperSpigotConfig.generateMonument) { // PaperSpigot
++        // OmegaSpigot start - Skip structure disabled in config
++        if (this.r.y && this.n && this.m.paperSpigotConfig.generateMonument && OmegaWorldGenController.allowsStructure(this.m, WorldGenStructure.MONUMENT)) { // PaperSpigot
+             this.A.a(this, this.m, i, j, (ChunkSnapshot) null);
+         }
++        // OmegaSpigot end
+ 
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index aa0972c33..fcce44ba6 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -166,6 +166,9 @@ public abstract class World implements IBlockAccess {
+     public final org.spigotmc.SpigotWorldConfig spigotConfig; // Spigot
+ 
+     public final org.github.paperspigot.PaperSpigotWorldConfig paperSpigotConfig; // PaperSpigot
++    // OmegaSpigot start - Flag for block filtering during population
++    public boolean worldGenPopulating;
++    // OmegaSpigot end
+ 
+     public dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotWorldConfig omegaSpigotConfig; // PandaSpigot
+ 
+@@ -387,6 +390,11 @@ public abstract class World implements IBlockAccess {
+     }
+ 
+     public boolean setTypeAndData(BlockPosition blockposition, IBlockData iblockdata, int i) {
++        // OmegaSpigot start - Skip blocks disabled for world generation
++        if (this.worldGenPopulating && !dev.zaryxstudios.escanergang.omegaspigot.worldgen.OmegaWorldGenController.allowsBlock(this, iblockdata.getBlock())) {
++            return false;
++        }
++        // OmegaSpigot end
+         // CraftBukkit start - tree generation
+         if (this.captureTreeGeneration) {
+             BlockState blockstate = null;
