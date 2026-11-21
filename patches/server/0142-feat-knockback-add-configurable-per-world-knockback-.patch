@@ -1,0 +1,270 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: EscanerGang <escaner@zaryxstudios.dev>
+Date: Sat, 21 Nov 2026 13:58:12 +0100
+Subject: [PATCH] feat(knockback): add configurable per-world knockback system
+
+- Introduce OmegaKnockbackController to manage per-world knockback profiles and persistence
+- Add enabled toggle and sanitization logic to OmegaSpigotWorldConfig to validate knockback values
+- Integrate knockback checks into EntityLiving and EntityHuman to respect world configuration
+- Replace invalid knockback values with safe defaults and log warnings per world
+- Initialize knockback configuration during config loading and register controller instance
+
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
+index 538d4d637d54b22560b76c61c4c8d45d977fa4ef..8dc84f9cdc558f7d784571523e69d89f0c4c250a 100644
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
+@@ -2,6 +2,8 @@ package dev.zaryxstudios.escanergang.omegaspigot.config;
+ 
+ import com.google.common.base.Throwables;
+ import com.hpfxd.configurate.eoyaml.EOYamlConfigurationLoader;
++import dev.zaryxstudios.escanergang.omegaspigot.knockback.OmegaKnockback;
++import dev.zaryxstudios.escanergang.omegaspigot.knockback.OmegaKnockbackController;
+ import dev.zaryxstudios.escanergang.omegaspigot.worldgen.OmegaWorldGen;
+ import dev.zaryxstudios.escanergang.omegaspigot.worldgen.OmegaWorldGenController;
+ import net.minecraft.server.World;
+@@ -69,6 +71,9 @@ public class OmegaSpigotConfig {
+                             "To specify settings for a specific world, just add a new section with the world's name.");
+             ConfigurationNode defaultWorldNode = worldsNode.node("default");
+             defaultWorldConfig = defaultWorldNode.get(OmegaSpigotWorldConfig.class);
++            // OmegaSpigot start - Sanitize default knockback values
++            sanitizeKnockback("default", defaultWorldConfig);
++            // OmegaSpigot end
+             defaultWorldNode.set(defaultWorldConfig); // populate default in config
+             
+             root.set(config); // update backing node
+@@ -78,6 +83,7 @@ public class OmegaSpigotConfig {
+             initWorlds(worldsNode);
+             // OmegaSpigot start - Register world generation API controller
+             OmegaWorldGen.setController(OmegaWorldGenController.INSTANCE);
++            OmegaKnockback.setController(OmegaKnockbackController.INSTANCE);
+             // OmegaSpigot end
+         } catch (Exception e) {
+             throw Throwables.propagate(e);
+@@ -92,10 +98,22 @@ public class OmegaSpigotConfig {
+             ConfigurationNode worldNode = entry.getValue();
+             
+             OmegaSpigotWorldConfig worldConfig = worldNode.get(OmegaSpigotWorldConfig.class);
+-            
++            // OmegaSpigot start - Sanitize per-world knockback values
++            sanitizeKnockback(worldName.toString(), worldConfig);
++            // OmegaSpigot end
++
+             worldConfigs.put(worldName.toString(), worldConfig);
+         }
+     }
++
++    // OmegaSpigot start - Ensure knockback section exists and holds valid values
++    private static void sanitizeKnockback(String worldName, OmegaSpigotWorldConfig worldConfig) {
++        if (worldConfig.knockback == null) {
++            worldConfig.knockback = new OmegaSpigotWorldConfig.KnockbackConfig();
++        }
++        worldConfig.knockback.sanitize(worldName);
++    }
++    // OmegaSpigot end
+     
+     public static OmegaSpigotWorldConfig getWorldConfig(String worldName) {
+         return worldConfigs.getOrDefault(worldName, defaultWorldConfig);
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
+index 352a03ceea1b8a7d3013cd6ac5fe8c65e8f63344..24a0e52b7904a33046da917935f32dfd41564a89 100644
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
+@@ -14,12 +14,55 @@ public class OmegaSpigotWorldConfig {
+ 
+     @ConfigSerializable
+     public static class KnockbackConfig {
++        // OmegaSpigot start - Toggle custom knockback per world
++        @Comment("When false, vanilla knockback is used in this world.")
++        public boolean enabled = true;
++        // OmegaSpigot end
++
+         public double friction = 2.0;
+         public double horizontal = 0.4;
+         public double vertical = 0.4;
+         public double verticalLimit = 0.4000000059604645;
+         public double extraHorizontal = 0.5;
+         public double extraVertical = 0.1;
++
++        // OmegaSpigot start - Replace invalid knockback values with defaults on load
++        public void sanitize(String worldName) {
++            if (!(friction > 0.0) || Double.isInfinite(friction)) {
++                warn(worldName, "friction", friction, 2.0);
++                friction = 2.0;
++            }
++            if (!isFiniteNonNegative(horizontal)) {
++                warn(worldName, "horizontal", horizontal, 0.4);
++                horizontal = 0.4;
++            }
++            if (!Double.isFinite(vertical)) {
++                warn(worldName, "vertical", vertical, 0.4);
++                vertical = 0.4;
++            }
++            if (!isFiniteNonNegative(verticalLimit)) {
++                warn(worldName, "verticalLimit", verticalLimit, 0.4000000059604645);
++                verticalLimit = 0.4000000059604645;
++            }
++            if (!isFiniteNonNegative(extraHorizontal)) {
++                warn(worldName, "extraHorizontal", extraHorizontal, 0.5);
++                extraHorizontal = 0.5;
++            }
++            if (!Double.isFinite(extraVertical)) {
++                warn(worldName, "extraVertical", extraVertical, 0.1);
++                extraVertical = 0.1;
++            }
++        }
++
++        private static boolean isFiniteNonNegative(double value) {
++            return Double.isFinite(value) && value >= 0.0;
++        }
++
++        private static void warn(String worldName, String field, double value, double fallback) {
++            java.util.logging.Logger.getLogger("OmegaSpigot").warning("Invalid knockback." + field + " (" + value
++                    + ") for world '" + worldName + "' in omegaspigot.yml, using " + fallback);
++        }
++        // OmegaSpigot end
+     }
+ 
+     @Comment("This option makes it so that when players are teleported to a location\n" +
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/knockback/OmegaKnockbackController.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/knockback/OmegaKnockbackController.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..d1363f7424eec24b7a316355ffa80a0a747bc468
+--- /dev/null
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/knockback/OmegaKnockbackController.java
+@@ -0,0 +1,65 @@
++package dev.zaryxstudios.escanergang.omegaspigot.knockback;
++
++import dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotConfig;
++import dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotWorldConfig;
++import org.bukkit.World;
++import org.bukkit.craftbukkit.CraftWorld;
++
++public final class OmegaKnockbackController implements KnockbackController {
++
++    public static final OmegaKnockbackController INSTANCE = new OmegaKnockbackController();
++
++    private OmegaKnockbackController() {
++    }
++
++    @Override
++    public boolean isEnabled(World world) {
++        return OmegaSpigotConfig.getWorldConfig(world.getName()).knockback.enabled;
++    }
++
++    @Override
++    public void setEnabled(World world, boolean enabled) {
++        writableConfig(world).knockback.enabled = enabled;
++    }
++
++    @Override
++    public KnockbackProfile getProfile(World world) {
++        OmegaSpigotWorldConfig.KnockbackConfig knockback = OmegaSpigotConfig.getWorldConfig(world.getName()).knockback;
++        KnockbackProfile profile = new KnockbackProfile();
++        profile.setFriction(knockback.friction);
++        profile.setHorizontal(knockback.horizontal);
++        profile.setVertical(knockback.vertical);
++        profile.setVerticalLimit(knockback.verticalLimit);
++        profile.setExtraHorizontal(knockback.extraHorizontal);
++        profile.setExtraVertical(knockback.extraVertical);
++        return profile;
++    }
++
++    @Override
++    public void setProfile(World world, KnockbackProfile profile) {
++        KnockbackProfile values = profile.copy();
++        OmegaSpigotWorldConfig.KnockbackConfig knockback = writableConfig(world).knockback;
++        knockback.friction = values.getFriction();
++        knockback.horizontal = values.getHorizontal();
++        knockback.vertical = values.getVertical();
++        knockback.verticalLimit = values.getVerticalLimit();
++        knockback.extraHorizontal = values.getExtraHorizontal();
++        knockback.extraVertical = values.getExtraVertical();
++    }
++
++    @Override
++    public void resetProfile(World world) {
++        setProfile(world, new KnockbackProfile());
++    }
++
++    @Override
++    public void save() {
++        OmegaSpigotConfig.saveWorldConfigs();
++    }
++    
++    private static OmegaSpigotWorldConfig writableConfig(World world) {
++        OmegaSpigotWorldConfig config = OmegaSpigotConfig.getOrCreateWorldConfig(world.getName());
++        ((CraftWorld) world).getHandle().omegaSpigotConfig = config;
++        return config;
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
+index 54010ffa30dabe67f34fa9027ee9c42db8092059..1afec652ce7a4e52758a924c3c63cea94c5eba61 100644
+--- a/src/main/java/net/minecraft/server/EntityHuman.java
++++ b/src/main/java/net/minecraft/server/EntityHuman.java
+@@ -1011,13 +1011,15 @@ public abstract class EntityHuman extends EntityLiving {
+ 
+                     if (flag2) {
+                         if (i > 0) {
+-                            // PandaSpigot start - Configurable knockback
++                            // PandaSpigot & OmegaSpigot start - Configurable knockback
+                             dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotWorldConfig.KnockbackConfig knockbackConfig = entity.world.omegaSpigotConfig.knockback;
+-                            entity.g(
+-                                    -MathHelper.sin(this.yaw * 3.1415927F / 180.0F) * (float) i * knockbackConfig.extraHorizontal,
+-                                    knockbackConfig.extraVertical,
+-                                    MathHelper.cos(this.yaw * 3.1415927F / 180.0F) * (float) i * knockbackConfig.extraHorizontal);
+-                            // PandaSpigot end
++                            if (knockbackConfig.enabled) {
++                                entity.g(
++                                        -MathHelper.sin(this.yaw * 3.1415927F / 180.0F) * (float) i * knockbackConfig.extraHorizontal,
++                                        knockbackConfig.extraVertical,
++                                        MathHelper.cos(this.yaw * 3.1415927F / 180.0F) * (float) i * knockbackConfig.extraHorizontal);
++                            }
++                            // PandaSpigot & OmegaSpigot end
+                             this.motX *= 0.6D;
+                             this.motZ *= 0.6D;
+                             this.setSprinting(false);
+diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
+index c0c626e4919ad5d3740448d93bd5433cac2863c7..981ecec082fc9f81d7e0dfef1034a940b43503e5 100644
+--- a/src/main/java/net/minecraft/server/EntityLiving.java
++++ b/src/main/java/net/minecraft/server/EntityLiving.java
+@@ -897,23 +897,34 @@ public abstract class EntityLiving extends Entity {
+     public void a(Entity entity, float f, double d0, double d1) {
+         if (this.random.nextDouble() >= this.getAttributeInstance(GenericAttributes.c).getValue()) {
+             this.ai = true;
+-            // PandaSpigot start - Configurable knockback
++            // PandaSpigot & OmegaSpigot start - Configurable knockback
+             dev.zaryxstudios.escanergang.omegaspigot.config.OmegaSpigotWorldConfig.KnockbackConfig knockbackConfig = entity.world.omegaSpigotConfig.knockback;
++            if (!knockbackConfig.enabled) {
++                return;
++            }
++            // OmegaSpigot start - Avoid NaN motion when attacker and victim share a position
+             double magnitude = MathHelper.sqrt(d0 * d0 + d1 * d1);
+-    
+-            double friction = knockbackConfig.friction;
++            // OmegaSpigot end
++
++            // OmegaSpigot start - Guard against a friction value that would divide by zero
++            double friction = knockbackConfig.friction > 0.0 ? knockbackConfig.friction : 1.0;
++            // OmegaSpigot end
+             this.motX /= friction;
+             this.motY /= friction;
+             this.motZ /= friction;
+-    
+-            this.motX -= d0 / magnitude * knockbackConfig.horizontal;
++
++            // OmegaSpigot start - Only push horizontally when there is a direction
++            if (magnitude > 0.0) {
++                this.motX -= d0 / magnitude * knockbackConfig.horizontal;
++                this.motZ -= d1 / magnitude * knockbackConfig.horizontal;
++            }
++            // OmegaSpigot end
+             this.motY += knockbackConfig.vertical;
+-            this.motZ -= d1 / magnitude * knockbackConfig.horizontal;
+-    
++
+             if (this.motY > knockbackConfig.verticalLimit) {
+                 this.motY = knockbackConfig.verticalLimit;
+             }
+-            // PandaSpigot end
++            // PandaSpigot & OmegaSpigot end
+ 
+         }
+     }

@@ -5,9 +5,33 @@ Subject: [PATCH] Add packet limiter config
 
 Packet limiter implementation taken from Spottedleaf's patch in Paper.
 
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
+index e110ee7081848e906c3f77406bacc782e917574b..74ee00cd18bc55b6b9e13ba3c95b94a7098f7c33 100644
+--- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
+@@ -38,7 +38,8 @@ public class OmegaSpigotConfig {
+                         .header("This is the configuration file for OmegaSpigot.\n" +
+                                 "Use caution when modifying settings, as some may impact gameplay in non-obvious ways.")
+                         .mapFactory(MapFactories.insertionOrdered())
+-                        .serializers(build -> build.registerAnnotatedObjects(ObjectMapper.factoryBuilder()
++                        .serializers(build -> build.register(PacketLimiterConfig.class, new PacketLimiterConfig.Serializer())
++                                .registerAnnotatedObjects(ObjectMapper.factoryBuilder()
+                                 .defaultNamingScheme(NamingSchemes.CAMEL_CASE)
+                                 .build())))
+                 .build();
+@@ -113,4 +114,9 @@ public class OmegaSpigotConfig {
+     public int maxBookPageSize = 2560;
+ 
+     public double maxBookTotalSizeMultiplier = 0.98d;
++
++    @Comment("Limits incoming packets from players. See Paper's documentation for more info:\n" +
++        "https://docs.papermc.io/paper/reference/paper-global-configuration#packet-limiter\n" +
++        "(note that \"max-packet-rate\" is renamed to \"maxPacketRate\")")
++    public PacketLimiterConfig packetLimiter = PacketLimiterConfig.createDefault();
+ }
 diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/PacketLimiterConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/PacketLimiterConfig.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..24d213655f038129e25bd75ce876ba68ed43105c
+index 0000000000000000000000000000000000000000..f12d73e73d6d0c2cd23465c9a48c9baf008d425a
 --- /dev/null
 +++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/PacketLimiterConfig.java
 @@ -0,0 +1,132 @@
@@ -143,33 +167,9 @@ index 0000000000000000000000000000000000000000..24d213655f038129e25bd75ce876ba68
 +        }
 +    }
 +}
-diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
-index 7db0c0097bcb38e4e49ab12879c230770e47334d..fcf7738c75f21ad23693d903b476c65b4a207a84 100644
---- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
-+++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
-@@ -38,7 +38,8 @@ public class OmegaSpigotConfig {
-                         .header("This is the configuration file for OmegaSpigot.\n" +
-                                 "Use caution when modifying settings, as some may impact gameplay in non-obvious ways.")
-                         .mapFactory(MapFactories.insertionOrdered())
--                        .serializers(build -> build.registerAnnotatedObjects(ObjectMapper.factoryBuilder()
-+                        .serializers(build -> build.register(PacketLimiterConfig.class, new PacketLimiterConfig.Serializer())
-+                                .registerAnnotatedObjects(ObjectMapper.factoryBuilder()
-                                 .defaultNamingScheme(NamingSchemes.CAMEL_CASE)
-                                 .build())))
-                 .build();
-@@ -113,4 +114,9 @@ public class OmegaSpigotConfig {
-     public int maxBookPageSize = 2560;
- 
-     public double maxBookTotalSizeMultiplier = 0.98d;
-+
-+    @Comment("Limits incoming packets from players. See Paper's documentation for more info:\n" +
-+        "https://docs.papermc.io/paper/reference/paper-global-configuration#packet-limiter\n" +
-+        "(note that \"max-packet-rate\" is renamed to \"maxPacketRate\")")
-+    public PacketLimiterConfig packetLimiter = PacketLimiterConfig.createDefault();
- }
 diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/util/IntervalledCounter.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/util/IntervalledCounter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..d61d44e8e1126ed3bea6e633cc0bdebb0a148828
+index 0000000000000000000000000000000000000000..b10459775c8bd1e9af99dc7871a49732533f2dcc
 --- /dev/null
 +++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/util/IntervalledCounter.java
 @@ -0,0 +1,116 @@
@@ -290,7 +290,7 @@ index 0000000000000000000000000000000000000000..d61d44e8e1126ed3bea6e633cc0bdebb
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/NetworkManager.java b/src/main/java/net/minecraft/server/NetworkManager.java
-index a9e86cdaeb6924adf2886a4804d51a32cd99f13c..b6fc419a5a5503fd6548ab0033994553f11fb490 100644
+index a9e86cdaeb6924adf2886a4804d51a32cd99f13c..1507474c476e05adb55071274dbb91a309d61192 100644
 --- a/src/main/java/net/minecraft/server/NetworkManager.java
 +++ b/src/main/java/net/minecraft/server/NetworkManager.java
 @@ -113,6 +113,23 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet> {

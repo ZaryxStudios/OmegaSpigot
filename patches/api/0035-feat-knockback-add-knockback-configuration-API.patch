@@ -1,0 +1,247 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: EscanerGang <escaner@zaryxstudios.dev>
+Date: Sat, 21 Nov 2026 13:58:20 +0100
+Subject: [PATCH] feat(knockback): add knockback configuration API
+
+- Introduces KnockbackController interface to manage per-world knockback settings
+- Adds KnockbackProfile class with validated mutable knockback values matching vanilla defaults
+- Provides OmegaKnockback entry point to access the active controller implementation
+- Allows enabling or disabling custom knockback per world and persisting changes via save()
+- Enables fine-tuned knockback control per world without altering vanilla behavior directly
+
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/knockback/KnockbackController.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/knockback/KnockbackController.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..5e62a317d2199f46591b8cc2f2ed744acaedf167
+--- /dev/null
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/knockback/KnockbackController.java
+@@ -0,0 +1,34 @@
++package dev.zaryxstudios.escanergang.omegaspigot.knockback;
++
++import org.bukkit.World;
++
++/**
++ * Controls the knockback applied to entities hit inside a world.
++ * <p>
++ * Changes take effect immediately for the world they are made on. They are kept in memory until
++ * {@link #save()} is called, which writes them to the OmegaSpigot configuration file.
++ * Call these methods from the server's main thread.
++ */
++public interface KnockbackController {
++
++    /** @return {@code true} if custom knockback is applied in the world. When disabled, vanilla knockback is used. */
++    boolean isEnabled(World world);
++
++    /** Enables or disables custom knockback in the world. */
++    void setEnabled(World world, boolean enabled);
++
++    /** @return a copy of the knockback values currently used in the world. */
++    KnockbackProfile getProfile(World world);
++
++    /**
++     * Replaces the knockback values used in the world. The profile is copied, so later changes to it
++     * do not affect the world.
++     */
++    void setProfile(World world, KnockbackProfile profile);
++
++    /** Restores the default knockback values in the world. */
++    void resetProfile(World world);
++
++    /** Writes all pending changes to the OmegaSpigot configuration file. */
++    void save();
++}
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/knockback/KnockbackProfile.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/knockback/KnockbackProfile.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..6537b113f0f84999e84506a2693394433b4402c1
+--- /dev/null
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/knockback/KnockbackProfile.java
+@@ -0,0 +1,147 @@
++package dev.zaryxstudios.escanergang.omegaspigot.knockback;
++
++/**
++ * Knockback values applied to a world. Instances are mutable and detached from the server:
++ * change them and pass them to {@link KnockbackController#setProfile(org.bukkit.World, KnockbackProfile)}.
++ * <p>
++ * Defaults match the values OmegaSpigot ships with.
++ */
++public final class KnockbackProfile {
++
++    public static final double DEFAULT_FRICTION = 2.0;
++    public static final double DEFAULT_HORIZONTAL = 0.4;
++    public static final double DEFAULT_VERTICAL = 0.4;
++    public static final double DEFAULT_VERTICAL_LIMIT = 0.4000000059604645;
++    public static final double DEFAULT_EXTRA_HORIZONTAL = 0.5;
++    public static final double DEFAULT_EXTRA_VERTICAL = 0.1;
++
++    private double friction = DEFAULT_FRICTION;
++    private double horizontal = DEFAULT_HORIZONTAL;
++    private double vertical = DEFAULT_VERTICAL;
++    private double verticalLimit = DEFAULT_VERTICAL_LIMIT;
++    private double extraHorizontal = DEFAULT_EXTRA_HORIZONTAL;
++    private double extraVertical = DEFAULT_EXTRA_VERTICAL;
++
++    /** Creates a profile with the default values. */
++    public KnockbackProfile() {
++    }
++
++    /** @return a copy of this profile. */
++    public KnockbackProfile copy() {
++        KnockbackProfile copy = new KnockbackProfile();
++        copy.friction = friction;
++        copy.horizontal = horizontal;
++        copy.vertical = vertical;
++        copy.verticalLimit = verticalLimit;
++        copy.extraHorizontal = extraHorizontal;
++        copy.extraVertical = extraVertical;
++        return copy;
++    }
++
++    /** @return the divisor applied to the victim's current velocity before knockback. Vanilla: 2.0. */
++    public double getFriction() {
++        return friction;
++    }
++
++    /**
++     * @param friction divisor applied to the victim's current velocity. Must be finite and greater than 0.
++     * @throws IllegalArgumentException if the value is not finite or not greater than 0
++     */
++    public void setFriction(double friction) {
++        requireFinite("friction", friction);
++        if (friction <= 0.0) {
++            throw new IllegalArgumentException("friction must be greater than 0, got " + friction);
++        }
++        this.friction = friction;
++    }
++
++    /** @return the horizontal push applied away from the attacker. Vanilla: 0.4. */
++    public double getHorizontal() {
++        return horizontal;
++    }
++
++    /**
++     * @param horizontal horizontal push strength. Must be finite and not negative.
++     * @throws IllegalArgumentException if the value is not finite or negative
++     */
++    public void setHorizontal(double horizontal) {
++        requireNonNegative("horizontal", horizontal);
++        this.horizontal = horizontal;
++    }
++
++    /** @return the upward velocity added on every hit. Vanilla: 0.4. */
++    public double getVertical() {
++        return vertical;
++    }
++
++    /**
++     * @param vertical upward velocity added on every hit. Must be finite.
++     * @throws IllegalArgumentException if the value is not finite
++     */
++    public void setVertical(double vertical) {
++        requireFinite("vertical", vertical);
++        this.vertical = vertical;
++    }
++
++    /** @return the maximum upward velocity after a hit. Vanilla: 0.4000000059604645. */
++    public double getVerticalLimit() {
++        return verticalLimit;
++    }
++
++    /**
++     * @param verticalLimit maximum upward velocity after a hit. Must be finite and not negative.
++     * @throws IllegalArgumentException if the value is not finite or negative
++     */
++    public void setVerticalLimit(double verticalLimit) {
++        requireNonNegative("verticalLimit", verticalLimit);
++        this.verticalLimit = verticalLimit;
++    }
++
++    /** @return the extra horizontal push added per level of the Knockback enchantment and sprint hits. Vanilla: 0.5. */
++    public double getExtraHorizontal() {
++        return extraHorizontal;
++    }
++
++    /**
++     * @param extraHorizontal extra horizontal push. Must be finite and not negative.
++     * @throws IllegalArgumentException if the value is not finite or negative
++     */
++    public void setExtraHorizontal(double extraHorizontal) {
++        requireNonNegative("extraHorizontal", extraHorizontal);
++        this.extraHorizontal = extraHorizontal;
++    }
++
++    /** @return the extra upward velocity added by sprint hits. Vanilla: 0.1. */
++    public double getExtraVertical() {
++        return extraVertical;
++    }
++
++    /**
++     * @param extraVertical extra upward velocity. Must be finite.
++     * @throws IllegalArgumentException if the value is not finite
++     */
++    public void setExtraVertical(double extraVertical) {
++        requireFinite("extraVertical", extraVertical);
++        this.extraVertical = extraVertical;
++    }
++
++    private static void requireFinite(String name, double value) {
++        if (Double.isNaN(value) || Double.isInfinite(value)) {
++            throw new IllegalArgumentException(name + " must be a finite number, got " + value);
++        }
++    }
++
++    private static void requireNonNegative(String name, double value) {
++        requireFinite(name, value);
++        if (value < 0.0) {
++            throw new IllegalArgumentException(name + " must not be negative, got " + value);
++        }
++    }
++
++    @Override
++    public String toString() {
++        return "KnockbackProfile{friction=" + friction + ", horizontal=" + horizontal + ", vertical=" + vertical
++                + ", verticalLimit=" + verticalLimit + ", extraHorizontal=" + extraHorizontal
++                + ", extraVertical=" + extraVertical + "}";
++    }
++}
+diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/knockback/OmegaKnockback.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/knockback/OmegaKnockback.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..b2985df466c53b85144299a4a2a1e3d177013de4
+--- /dev/null
++++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/knockback/OmegaKnockback.java
+@@ -0,0 +1,37 @@
++package dev.zaryxstudios.escanergang.omegaspigot.knockback;
++
++/**
++ * Entry point for the OmegaSpigot knockback API.
++ * <pre>
++ * KnockbackController knockback = OmegaKnockback.getController();
++ * KnockbackProfile profile = knockback.getProfile(world);
++ * profile.setHorizontal(0.6);
++ * knockback.setProfile(world, profile);
++ * knockback.save();
++ * </pre>
++ */
++public final class OmegaKnockback {
++    private static volatile KnockbackController controller;
++
++    private OmegaKnockback() {
++    }
++
++    /**
++     * @return the active knockback controller.
++     * @throws IllegalStateException if the server has not finished starting up.
++     */
++    public static KnockbackController getController() {
++        KnockbackController current = controller;
++        if (current == null) {
++            throw new IllegalStateException("OmegaSpigot knockback controller is not available yet");
++        }
++        return current;
++    }
++
++    /**
++     * Internal: called by the server to register its controller implementation.
++     */
++    public static void setController(KnockbackController newController) {
++        controller = newController;
++    }
++}

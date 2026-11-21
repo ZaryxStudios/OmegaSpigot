@@ -1,12 +1,12 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: OmegaSpigot Contributors <studio@zaryxstudios.dev>
+From: EscanerGang <escaner@zaryxstudios.dev>
 Date: Thu, 19 Nov 2026 12:00:00 +0000
 Subject: [PATCH] World generation control
 
 Adds per-world control of biomes, structures and block types generated in HCF maps (worldGeneration section in omegaspigot.yml) and the OmegaWorldGen API implementation.
----
+
 diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
-index 317386288..63e0795ba 100644
+index 317386288bc7184ca757db33292f36689a9cb91f..63e0795ba07a4fc90c51e25f0e48a8c0d34da12e 100644
 --- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
 +++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotConfig.java
 @@ -2,6 +2,8 @@ package dev.zaryxstudios.escanergang.omegaspigot.config;
@@ -94,7 +94,7 @@ index 317386288..63e0795ba 100644
          return getWorldConfig(world.worldData.getName());
      }
 diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
-index 9467167fb..5d3e0981a 100644
+index 9467167fbb8d53c8f23a2179f6ea56f5f476d740..5d3e0981a6e20ad94dde76b17b7341cfe02ba5fc 100644
 --- a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
 +++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/config/OmegaSpigotWorldConfig.java
 @@ -1,5 +1,8 @@
@@ -137,7 +137,7 @@ index 9467167fb..5d3e0981a 100644
  }
 diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/OmegaWorldGenController.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/OmegaWorldGenController.java
 new file mode 100644
-index 000000000..5fff50d91
+index 0000000000000000000000000000000000000000..5fff50d91f3ae6b850e0a0b1b5eebf92d9028dbf
 --- /dev/null
 +++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/OmegaWorldGenController.java
 @@ -0,0 +1,196 @@
@@ -338,7 +338,7 @@ index 000000000..5fff50d91
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderGenerate.java b/src/main/java/net/minecraft/server/ChunkProviderGenerate.java
-index ad464d32d..07680ecaa 100644
+index ad464d32d94763871027398ac27a71b9209267e5..07680ecaa2d565d683be5d6f6466166c419460c0 100644
 --- a/src/main/java/net/minecraft/server/ChunkProviderGenerate.java
 +++ b/src/main/java/net/minecraft/server/ChunkProviderGenerate.java
 @@ -2,6 +2,8 @@ package net.minecraft.server;
@@ -547,7 +547,7 @@ index ad464d32d..07680ecaa 100644
      }
  
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index aa0972c33..fcce44ba6 100644
+index aa0972c33425324681b160b7ad3fbf671721a96a..fcce44ba6aac6219adbf1c8d9e8454b5ac640e8a 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -166,6 +166,9 @@ public abstract class World implements IBlockAccess {

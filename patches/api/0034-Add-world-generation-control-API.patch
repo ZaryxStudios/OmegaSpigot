@@ -1,13 +1,13 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: OmegaSpigot Contributors <studio@zaryxstudios.dev>
+From: EscanerGang <escaner@zaryxstudios.dev>
 Date: Thu, 19 Nov 2026 12:00:00 +0000
 Subject: [PATCH] Add world generation control API
 
 Adds the dev.zaryxstudios.escanergang.omegaspigot.worldgen API used to enable or disable biomes, structures and block types during world generation.
----
+
 diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/OmegaWorldGen.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/OmegaWorldGen.java
 new file mode 100644
-index 00000000..5e8fbb1e
+index 0000000000000000000000000000000000000000..5e8fbb1e328c5d024e7cd8b93fcb98c81be79aff
 --- /dev/null
 +++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/OmegaWorldGen.java
 @@ -0,0 +1,35 @@
@@ -48,7 +48,7 @@ index 00000000..5e8fbb1e
 +}
 diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/WorldGenController.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/WorldGenController.java
 new file mode 100644
-index 00000000..2b60b0ae
+index 0000000000000000000000000000000000000000..2b60b0ae45c057043eac79c212dfda0a476b9489
 --- /dev/null
 +++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/WorldGenController.java
 @@ -0,0 +1,43 @@
@@ -97,7 +97,7 @@ index 00000000..2b60b0ae
 +}
 diff --git a/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/WorldGenStructure.java b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/WorldGenStructure.java
 new file mode 100644
-index 00000000..696caf79
+index 0000000000000000000000000000000000000000..696caf7944339904f662ba521b7dfb5835afecd3
 --- /dev/null
 +++ b/src/main/java/dev/zaryxstudios/escanergang/omegaspigot/worldgen/WorldGenStructure.java
 @@ -0,0 +1,23 @@
