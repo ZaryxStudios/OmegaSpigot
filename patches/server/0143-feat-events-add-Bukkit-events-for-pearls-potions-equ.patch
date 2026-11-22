@@ -1,0 +1,121 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: EscanerGang <escaner@zaryxstudios.dev>
+Date: Sat, 21 Nov 2026 15:10:36 +0100
+Subject: [PATCH] feat(events): add Bukkit events for pearls, potions,
+ equipment
+
+- Added EnderpearlLandEvent that fires when ender pearls land on blocks or entities and supports cancellation
+- Added PotionEffectAddEvent, PotionEffectExpireEvent, and PotionEffectRemoveEvent for living entity potion changes
+- Added EquipmentSetEvent when player armor or equipment slots are modified by server logic
+- Introduced toBukkitEffect helper to convert NMS MobEffect instances to Bukkit PotionEffect objects
+- All events fire only on the server side to avoid client-side desynchronization
+
+diff --git a/src/main/java/net/minecraft/server/EntityEnderPearl.java b/src/main/java/net/minecraft/server/EntityEnderPearl.java
+index 5461e177a4a59f27b3b818ecc6fa1fd44d2f8bf9..6b5d8edc2cc6e5ee0352aae73b8524475fdee31e 100644
+--- a/src/main/java/net/minecraft/server/EntityEnderPearl.java
++++ b/src/main/java/net/minecraft/server/EntityEnderPearl.java
+@@ -26,6 +26,17 @@ public class EntityEnderPearl extends EntityProjectile {
+     }
+ 
+     protected void a(MovingObjectPosition movingobjectposition) {
++        // OmegaSpigot start - enderpearl land event
++        if (!this.world.isClientSide) {
++            org.bukkit.event.entity.EnderpearlLandEvent landEvent = new org.bukkit.event.entity.EnderpearlLandEvent((org.bukkit.entity.EnderPearl) this.getBukkitEntity(), movingobjectposition.entity == null ? org.bukkit.event.entity.EnderpearlLandEvent.Reason.BLOCK : org.bukkit.event.entity.EnderpearlLandEvent.Reason.ENTITY);
++            org.bukkit.Bukkit.getPluginManager().callEvent(landEvent);
++            if (landEvent.isCancelled()) {
++                this.die();
++                return;
++            }
++        }
++        // OmegaSpigot end
++
+         EntityLiving entityliving = this.getShooter();
+ 
+         if (movingobjectposition.entity != null) {
+diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
+index 981ecec082fc9f81d7e0dfef1034a940b43503e5..84cc6ae55e6025f8b335da6aa03ef3437ac3bb4d 100644
+--- a/src/main/java/net/minecraft/server/EntityLiving.java
++++ b/src/main/java/net/minecraft/server/EntityLiving.java
+@@ -479,6 +479,9 @@ public abstract class EntityLiving extends Entity {
+ 
+             if (!mobeffect.tick(this)) {
+                 if (!this.world.isClientSide) {
++                    // OmegaSpigot start - potion effect expire event
++                    org.bukkit.Bukkit.getPluginManager().callEvent(new org.bukkit.event.entity.PotionEffectExpireEvent((org.bukkit.entity.LivingEntity) this.getBukkitEntity(), toBukkitEffect(mobeffect)));
++                    // OmegaSpigot end
+                     iterator.remove();
+                     this.b(mobeffect);
+                 }
+@@ -583,6 +586,12 @@ public abstract class EntityLiving extends Entity {
+         return (MobEffect) this.effects.get(Integer.valueOf(mobeffectlist.id));
+     }
+ 
++    // OmegaSpigot start - potion effect helper
++    private org.bukkit.potion.PotionEffect toBukkitEffect(MobEffect mobeffect) {
++        return new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.getById(mobeffect.getEffectId()), mobeffect.getDuration(), mobeffect.getAmplifier(), mobeffect.isAmbient(), mobeffect.isShowParticles());
++    }
++    // OmegaSpigot end
++
+     public void addEffect(MobEffect mobeffect) {
+         org.spigotmc.AsyncCatcher.catchOp( "effect add"); // Spigot
+         // CraftBukkit start
+@@ -592,6 +601,13 @@ public abstract class EntityLiving extends Entity {
+         }
+         // CraftBukkit end
+         if (this.d(mobeffect)) {
++            // OmegaSpigot start - potion effect add event
++            if (!this.world.isClientSide) {
++                org.bukkit.event.entity.PotionEffectAddEvent addEvent = new org.bukkit.event.entity.PotionEffectAddEvent((org.bukkit.entity.LivingEntity) this.getBukkitEntity(), toBukkitEffect(mobeffect));
++                org.bukkit.Bukkit.getPluginManager().callEvent(addEvent);
++                if (addEvent.isCancelled()) return;
++            }
++            // OmegaSpigot end
+             if (this.effects.containsKey(Integer.valueOf(mobeffect.getEffectId()))) {
+                 ((MobEffect) this.effects.get(Integer.valueOf(mobeffect.getEffectId()))).a(mobeffect);
+                 this.a((MobEffect) this.effects.get(Integer.valueOf(mobeffect.getEffectId())), true);
+@@ -629,6 +645,16 @@ public abstract class EntityLiving extends Entity {
+         MobEffect mobeffect = (MobEffect) this.effects.remove(Integer.valueOf(i));
+ 
+         if (mobeffect != null) {
++            // OmegaSpigot start - potion effect remove event
++            if (!this.world.isClientSide) {
++                org.bukkit.event.entity.PotionEffectRemoveEvent removeEvent = new org.bukkit.event.entity.PotionEffectRemoveEvent((org.bukkit.entity.LivingEntity) this.getBukkitEntity(), toBukkitEffect(mobeffect));
++                org.bukkit.Bukkit.getPluginManager().callEvent(removeEvent);
++                if (removeEvent.isCancelled()) {
++                    this.effects.put(Integer.valueOf(i), mobeffect);
++                    return;
++                }
++            }
++            // OmegaSpigot end
+             this.b(mobeffect);
+         }
+ 
+diff --git a/src/main/java/net/minecraft/server/PlayerInventory.java b/src/main/java/net/minecraft/server/PlayerInventory.java
+index 76fa51d97e9a938d4198bbe657d77900f6327744..2dd1ba05a4cb9cbb8392c83e70eab6964fa9c986 100644
+--- a/src/main/java/net/minecraft/server/PlayerInventory.java
++++ b/src/main/java/net/minecraft/server/PlayerInventory.java
+@@ -352,13 +352,24 @@ public class PlayerInventory implements IInventory {
+ 
+     public void setItem(int i, ItemStack itemstack) {
+         ItemStack[] aitemstack = this.items;
++        // OmegaSpigot start - equipment set event
++        boolean armorSlot = false;
+ 
+         if (i >= aitemstack.length) {
+             i -= aitemstack.length;
+             aitemstack = this.armor;
++            armorSlot = true;
+         }
+ 
++        ItemStack oldItem = aitemstack[i];
++        // OmegaSpigot end
+         aitemstack[i] = itemstack;
++
++        // OmegaSpigot start - equipment set event
++        if (armorSlot && this.player != null && !this.player.world.isClientSide) {
++            org.bukkit.Bukkit.getPluginManager().callEvent(new org.bukkit.event.inventory.EquipmentSetEvent((org.bukkit.entity.HumanEntity) this.player.getBukkitEntity(), oldItem == null ? null : org.bukkit.craftbukkit.inventory.CraftItemStack.asBukkitCopy(oldItem), itemstack == null ? null : org.bukkit.craftbukkit.inventory.CraftItemStack.asBukkitCopy(itemstack)));
++        }
++        // OmegaSpigot end
+     }
+ 
+     public float a(Block block) {
